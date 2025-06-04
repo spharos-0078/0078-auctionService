@@ -1,10 +1,13 @@
 package com.pieceofcake.auction_service.auction.entity;
 
+import com.pieceofcake.auction_service.auction.entity.enums.AuctionStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Entity
@@ -12,7 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Auction {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "auction_uuid", nullable = false)
@@ -31,13 +34,13 @@ public class Auction {
     private String highestBidMemberUuid;
 
     @Column(name = "start_Date", nullable = false)
-    private String startDate;
+    private LocalDateTime startDate;
 
     @Column(name = "end_Date", nullable = false)
-    private String endDate;
+    private LocalDateTime endDate;
 
-    @Column(name = "auction_status", nullable = false)
-    private String auctionStatus;
+    @Column(name = "auction_status")
+    private AuctionStatus auctionStatus = AuctionStatus.ONGOING;
 
     @Builder
     public Auction(
@@ -46,9 +49,9 @@ public class Auction {
             Long startingPrice,
             Long highestBidPrice,
             String highestBidMemberUuid,
-            String startDate,
-            String endDate,
-            String auctionStatus) {
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            AuctionStatus auctionStatus) {
         this.auctionUuid = auctionUuid;
         this.productUuid = productUuid;
         this.startingPrice = startingPrice;
