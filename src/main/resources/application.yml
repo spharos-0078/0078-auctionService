@@ -1,0 +1,38 @@
+Server:
+  port: 0
+  forward-headers-strategy: framework
+
+spring:
+  application:
+    name: auction-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/piece_of_cake_local
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 1234
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+  redis:
+    host: localhost
+    port: 6379
+    username: redis123
+    password: 1234
+
+  config:
+    import: optional:file:.env[.properties]
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    register-with-eureka: true
+    fetch-registry: true
