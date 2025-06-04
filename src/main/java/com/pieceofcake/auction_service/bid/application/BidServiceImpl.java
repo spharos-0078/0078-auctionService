@@ -4,7 +4,9 @@ import com.pieceofcake.auction_service.auction.dto.in.ReadMyAuctionsRequestDto;
 import com.pieceofcake.auction_service.auction.dto.out.ReadMyAuctionsResponseDto;
 import com.pieceofcake.auction_service.bid.application.batch.BidQueueService;
 import com.pieceofcake.auction_service.bid.dto.in.CreateBidRequestDto;
+import com.pieceofcake.auction_service.bid.dto.in.ReadAllBidsByAuctionRequestDto;
 import com.pieceofcake.auction_service.bid.dto.in.ReadBidRequestDto;
+import com.pieceofcake.auction_service.bid.dto.out.ReadAllBidsByAuctionResponseDto;
 import com.pieceofcake.auction_service.bid.dto.out.ReadBidResponseDto;
 import com.pieceofcake.auction_service.bid.entity.Bid;
 import com.pieceofcake.auction_service.bid.infrastructure.BidRepository;
@@ -53,5 +55,13 @@ public class BidServiceImpl implements BidService{
                 .toList();
     }
 
-
+    @Override
+    public List<ReadAllBidsByAuctionResponseDto> getBidsByAuctionUuid(
+            ReadAllBidsByAuctionRequestDto readAllBidsByAuctionRequestDto
+    ) {
+        return bidRepository.findAllByAuctionUuidAndDeletedFalse(readAllBidsByAuctionRequestDto.getAuctionUuid())
+                .stream()
+                .map(ReadAllBidsByAuctionResponseDto::from)
+                .toList();
+    }
 }
