@@ -1,5 +1,7 @@
 package com.pieceofcake.auction_service.bid.application;
 
+import com.pieceofcake.auction_service.auction.dto.in.ReadMyAuctionsRequestDto;
+import com.pieceofcake.auction_service.auction.dto.out.ReadMyAuctionsResponseDto;
 import com.pieceofcake.auction_service.bid.application.batch.BidQueueService;
 import com.pieceofcake.auction_service.bid.dto.in.CreateBidRequestDto;
 import com.pieceofcake.auction_service.bid.dto.in.ReadBidRequestDto;
@@ -11,6 +13,8 @@ import com.pieceofcake.auction_service.common.exception.BaseException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +40,17 @@ public class BidServiceImpl implements BidService{
             )
             .orElseThrow(() -> new BaseException(BaseResponseStatus.BID_NOT_FOUND))
         );
+    }
+
+    @Override
+    public List<ReadMyAuctionsResponseDto> readMyAuctions(ReadMyAuctionsRequestDto readMyAuctionsRequestDto) {
+        List<String> bids = bidRepository.findDistinctAuctionUuidsByMemberUuid(
+                readMyAuctionsRequestDto.getMemberUuid());
+
+        return bids
+                .stream()
+                .map(ReadMyAuctionsResponseDto::from)
+                .toList();
     }
 
 

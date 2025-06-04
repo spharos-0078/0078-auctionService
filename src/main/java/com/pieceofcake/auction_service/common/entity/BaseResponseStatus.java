@@ -31,6 +31,9 @@ public enum BaseResponseStatus {
      */
     BID_NOT_FOUND(HttpStatus.NOT_FOUND, false, 3000, "입찰 내역을 찾을 수 없습니다."),
 
+    // 3100: auction service error
+    AUCTION_NOT_FOUND(HttpStatus.NOT_FOUND, false, 3100, "경매를 찾을 수 없습니다."),
+
     INVALID_USER_INPUT(HttpStatus.BAD_REQUEST, false, 3000, "유효하지 않은 사용자 입력입니다.");
 
     private final HttpStatusCode httpStatusCode;
