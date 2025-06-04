@@ -2,15 +2,20 @@ package com.pieceofcake.auction_service.bid.presentation;
 
 import com.pieceofcake.auction_service.bid.application.BidService;
 import com.pieceofcake.auction_service.bid.dto.in.CreateBidRequestDto;
+import com.pieceofcake.auction_service.bid.dto.in.ReadAllBidsByAuctionRequestDto;
 import com.pieceofcake.auction_service.bid.dto.in.ReadBidRequestDto;
+import com.pieceofcake.auction_service.bid.dto.out.ReadAllBidsByAuctionResponseDto;
 import com.pieceofcake.auction_service.bid.vo.in.CreateBidRequestVo;
+import com.pieceofcake.auction_service.bid.vo.in.ReadAllBidsByAuctionRequestVo;
 import com.pieceofcake.auction_service.bid.vo.in.ReadBidRequestVo;
+import com.pieceofcake.auction_service.bid.vo.out.ReadAllBidsByAuctionResponseVo;
 import com.pieceofcake.auction_service.bid.vo.out.ReadBidResponseVo;
 import com.pieceofcake.auction_service.common.entity.BaseResponseEntity;
 import com.pieceofcake.auction_service.common.entity.BaseResponseStatus;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/bid")
@@ -34,5 +39,21 @@ public class BidController {
             @ModelAttribute ReadBidRequestVo readBidRequestVo
     ) {
         return new BaseResponseEntity<>(bidService.readBid(ReadBidRequestDto.of(memberUuid, readBidRequestVo)).toVo());
+    }
+
+    @GetMapping("/list/{auctionUuid}")
+    public BaseResponseEntity<List<ReadAllBidsByAuctionResponseVo>> getAllBidsByAuction(
+            @PathVariable(value = "auctionUuid") String auctionUuid
+    ) {
+        ReadAllBidsByAuctionRequestVo readAllBidsByAuctionRequestVo = ReadAllBidsByAuctionRequestVo.builder()
+                .auctionUuid(auctionUuid)
+                .build();
+
+        return new BaseResponseEntity<>(
+                bidService.getBidsByAuctionUuid(ReadAllBidsByAuctionRequestDto.from(readAllBidsByAuctionRequestVo))
+                        .stream()
+                        .map(ReadAllBidsByAuctionResponseDto::toVo)
+                        .toList()
+        );
     }
 }
