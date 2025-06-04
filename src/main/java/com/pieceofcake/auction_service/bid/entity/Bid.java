@@ -1,5 +1,6 @@
 package com.pieceofcake.auction_service.bid.entity;
 
+import com.pieceofcake.auction_service.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -10,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "bid")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-public class Bid {
+public class Bid extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 

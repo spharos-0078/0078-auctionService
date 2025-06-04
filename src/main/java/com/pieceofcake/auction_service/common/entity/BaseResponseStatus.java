@@ -25,12 +25,11 @@ public enum BaseResponseStatus {
     NO_ACCESS_AUTHORITY(HttpStatus.FORBIDDEN, false, 403, "접근 권한이 없습니다"),
     DISABLED_USER(HttpStatus.FORBIDDEN, false, 404, "비활성화된 계정입니다. 계정을 복구하시겠습니까?"),
     FAILED_TO_RESTORE(HttpStatus.INTERNAL_SERVER_ERROR, false, 405, "계정 복구에 실패했습니다. 관리자에게 문의해주세요."),
-    NO_EXIST_OAUTH(HttpStatus.NOT_FOUND, false, 406, "소셜 로그인 정보가 존재하지 않습니다."),
 
     /**
-     * 2000: users service error
+     * 3000: users service error
      */
-    DUPLICATED_EMAIL(HttpStatus.CONFLICT, false, 2101, "이미 가입된 이메일입니다."),
+    BID_NOT_FOUND(HttpStatus.NOT_FOUND, false, 3000, "입찰 내역을 찾을 수 없습니다."),
 
     INVALID_USER_INPUT(HttpStatus.BAD_REQUEST, false, 3000, "유효하지 않은 사용자 입력입니다.");
 

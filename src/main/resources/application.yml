@@ -1,5 +1,5 @@
 Server:
-  port: 8123
+  port: 0
   forward-headers-strategy: framework
 
 spring:
