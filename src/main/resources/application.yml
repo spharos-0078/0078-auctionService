@@ -1,4 +1,4 @@
-Server:
+server:
   port: 0
   forward-headers-strategy: framework
 
