@@ -36,12 +36,13 @@ public class Bid extends BaseEntity {
     private Boolean isHidden;
 
     @Builder
-    public Bid(String bidUuid,
-               String auctionUuid,
-               String memberUuid,
-               Long bidPrice,
-               Boolean isHighestBid,
-               Boolean isHidden
+    public Bid(
+            String bidUuid,
+            String auctionUuid,
+            String memberUuid,
+            Long bidPrice,
+            Boolean isHighestBid,
+            Boolean isHidden
     ) {
         this.bidUuid = bidUuid;
         this.auctionUuid = auctionUuid;

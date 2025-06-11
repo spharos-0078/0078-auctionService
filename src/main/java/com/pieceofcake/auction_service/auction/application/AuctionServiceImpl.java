@@ -2,20 +2,18 @@ package com.pieceofcake.auction_service.auction.application;
 
 import com.pieceofcake.auction_service.auction.dto.in.CreateAuctionRequestDto;
 import com.pieceofcake.auction_service.auction.dto.in.ReadHighestBidPriceRequestDto;
-import com.pieceofcake.auction_service.auction.dto.in.ReadMyAuctionsRequestDto;
+import com.pieceofcake.auction_service.auction.dto.out.UpdateAuctionDto;
 import com.pieceofcake.auction_service.auction.dto.out.ReadHighestBidPriceResponseDto;
-import com.pieceofcake.auction_service.auction.dto.out.ReadMyAuctionsResponseDto;
 import com.pieceofcake.auction_service.auction.entity.Auction;
 import com.pieceofcake.auction_service.auction.infrastructure.AuctionRepository;
-import com.pieceofcake.auction_service.bid.application.BidService;
 import com.pieceofcake.auction_service.common.entity.BaseResponseStatus;
 import com.pieceofcake.auction_service.common.exception.BaseException;
+import com.pieceofcake.auction_service.common.sse.SseEmitterService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -23,7 +21,6 @@ import java.util.List;
 public class AuctionServiceImpl implements AuctionService{
 
     private final AuctionRepository auctionRepository;
-    private final BidService bidService;
 
     @Override
     public ReadHighestBidPriceResponseDto readHighestBid(ReadHighestBidPriceRequestDto readHighestBidPriceRequestDto) {
@@ -41,9 +38,12 @@ public class AuctionServiceImpl implements AuctionService{
     }
 
     @Override
-    public List<ReadMyAuctionsResponseDto> getMyBidAuctions(ReadMyAuctionsRequestDto readMyAuctionsRequestDto) {
+    @Transactional
+    public void updateAuction(UpdateAuctionDto updateAuctionDto) {
+        Auction auction = auctionRepository.findByAuctionUuid(updateAuctionDto.getAuctionUuid())
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.AUCTION_NOT_FOUND));
 
-        List<ReadMyAuctionsResponseDto> result = bidService.readMyAuctions(readMyAuctionsRequestDto);
-        return result;
+        auctionRepository.save(updateAuctionDto.updateEntity(auction));
     }
+
 }

@@ -1,7 +1,6 @@
-package com.pieceofcake.auction_service.auction.dto.out;
+package com.pieceofcake.auction_service.bid.dto.out;
 
-import com.pieceofcake.auction_service.auction.entity.Auction;
-import com.pieceofcake.auction_service.auction.vo.out.ReadMyAuctionsResponseVo;
+import com.pieceofcake.auction_service.bid.vo.out.ReadMyAuctionsResponseVo;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

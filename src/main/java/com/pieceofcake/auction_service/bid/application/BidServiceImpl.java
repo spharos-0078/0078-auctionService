@@ -1,8 +1,10 @@
 package com.pieceofcake.auction_service.bid.application;
 
-import com.pieceofcake.auction_service.auction.dto.in.ReadMyAuctionsRequestDto;
-import com.pieceofcake.auction_service.auction.dto.out.ReadMyAuctionsResponseDto;
-import com.pieceofcake.auction_service.bid.application.batch.BidQueueService;
+import com.pieceofcake.auction_service.auction.application.AuctionService;
+import com.pieceofcake.auction_service.auction.dto.out.UpdateAuctionDto;
+import com.pieceofcake.auction_service.bid.dto.in.ReadMyAuctionsRequestDto;
+import com.pieceofcake.auction_service.bid.dto.out.CreateBidResponseDto;
+import com.pieceofcake.auction_service.bid.dto.out.ReadMyAuctionsResponseDto;
 import com.pieceofcake.auction_service.bid.dto.in.CreateBidRequestDto;
 import com.pieceofcake.auction_service.bid.dto.in.ReadAllBidsByAuctionRequestDto;
 import com.pieceofcake.auction_service.bid.dto.in.ReadBidRequestDto;
@@ -14,24 +16,72 @@ import com.pieceofcake.auction_service.common.entity.BaseResponseStatus;
 import com.pieceofcake.auction_service.common.exception.BaseException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class BidServiceImpl implements BidService{
     private final BidRepository bidRepository;
-    private final BidQueueService bidQueueService;
+    private final AuctionService auctionService;
+    private final StringRedisTemplate redisTemplate;
 
     @Override
     @Transactional
-    public void createBid(CreateBidRequestDto createBidRequestDto) {
+    public CreateBidResponseDto createBid(CreateBidRequestDto createBidRequestDto) {
         Bid bid = createBidRequestDto.toEntity();
-        // bid 저장
-        bidRepository.save(bid);
-        // 현재 1초 배치 주기에 처리되도록 큐에 추가
-        bidQueueService.addBid(bid);
+        String auctionUuid = bid.getAuctionUuid();
+        Long currentTimestamp = System.currentTimeMillis();
+
+        // 1. redis 최고가와 비교
+        String redisHighestBidKey = "auction:highestBid:" + auctionUuid;
+        String highestBidPriceStr = (String) redisTemplate.opsForHash().get(redisHighestBidKey, "bidPrice");
+        Long highestBidPrice = highestBidPriceStr != null ? Long.parseLong(highestBidPriceStr) : 0L;
+
+        // 2. 최고가가 아니면, bid SQL에 저장, 유저에게 입찰 실패 로직 전달
+        //    지금은 대응되는 auctionUuid 없어도 일단 bid SQL에 저장.
+        //    무결성 깨질 수 있나?
+        if (bid.getBidPrice() <= highestBidPrice) {
+            bidRepository.save(bid);
+            return CreateBidResponseDto.builder()
+                    .success(false)
+                    .message("입찰 실패")
+                    .build();
+        } else {
+        // 3. 최고가면, redis에 최고가 갈아끼우기
+            Map<String, String> bidData = new HashMap<>();
+            bidData.put("bidPrice", String.valueOf(bid.getBidPrice()));
+            bidData.put("bidUuid", bid.getBidUuid());
+            bidData.put("bidMemberUuid", bid.getMemberUuid());
+            bidData.put("timestamp", String.valueOf(currentTimestamp));
+            redisTemplate.opsForHash().putAll(redisHighestBidKey, bidData);
+
+            redisTemplate.expire(redisHighestBidKey, Duration.ofDays(14));  // 2주 간 저장
+        // 4. 경매 상태 업데이트.
+        //    요청량 많으면 redis에 최고가 저장하고, 경매 상태 업데이트는 묶음(batch)로 처리.
+        //    이 때 이전 최고가 timestamp와 현재 최고가 timestamp 간격을 비교, 짧으면 batch 처리 + scheduler 사용해서 경매 sql 업데이트
+        //    이후 bid SQL에 저장
+            auctionService.updateAuction(UpdateAuctionDto.builder()
+                    .auctionUuid(auctionUuid)
+                    .bidUuid(bid.getBidUuid())
+                    .bidPrice(bid.getBidPrice())
+                    .memberUuid(bid.getMemberUuid())
+                    .timestamp(currentTimestamp)
+                    .build()
+            );
+
+            bidRepository.save(bid);
+
+            return CreateBidResponseDto.builder()
+                    .success(true)
+                    .message("입찰 성공")
+                    .build();
+        }
     }
 
     @Override
