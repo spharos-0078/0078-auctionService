@@ -1,7 +1,7 @@
-package com.pieceofcake.auction_service.auction.dto.out;
+package com.pieceofcake.auction_service.auction.dto.in;
 
 import com.pieceofcake.auction_service.auction.entity.Auction;
-import com.pieceofcake.auction_service.auction.vo.out.UpdateAuctionVo;
+import com.pieceofcake.auction_service.auction.vo.in.UpdateAuctionVo;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +13,6 @@ public class UpdateAuctionDto {
     private String bidUuid;      // 입찰 UUID (최고 입찰의 UUID)
     private Long bidPrice;
     private String memberUuid;
-    private Long timestamp;         // 이벤트 발생 시각 (epoch millis)
 
 
     @Builder
@@ -21,29 +20,25 @@ public class UpdateAuctionDto {
             String auctionUuid,
             String bidUuid,
             Long bidPrice,
-            String memberUuid,
-            Long timestamp
+            String memberUuid
     ) {
         this.auctionUuid = auctionUuid;
         this.bidUuid = bidUuid;
         this.bidPrice = bidPrice;
         this.memberUuid = memberUuid;
-        this.timestamp = timestamp;
     }
 
     public static UpdateAuctionDto of(
             String auctionUuid,
             String bidUuid,
             Long bidPrice,
-            String memberUuid,
-            Long timestamp
+            String memberUuid
     ) {
         return UpdateAuctionDto.builder()
                 .auctionUuid(auctionUuid)
                 .bidUuid(bidUuid)
                 .bidPrice(bidPrice)
                 .memberUuid(memberUuid)
-                .timestamp(timestamp)
                 .build();
     }
 
@@ -67,7 +62,6 @@ public class UpdateAuctionDto {
                 .auctionUuid(this.auctionUuid)
                 .bidPrice(this.bidPrice)
                 .memberUuid(this.memberUuid)
-                .timestamp(this.timestamp)
                 .build();
     }
 }

@@ -2,17 +2,15 @@ package com.pieceofcake.auction_service.auction.application;
 
 import com.pieceofcake.auction_service.auction.dto.in.CreateAuctionRequestDto;
 import com.pieceofcake.auction_service.auction.dto.in.ReadHighestBidPriceRequestDto;
-import com.pieceofcake.auction_service.auction.dto.out.UpdateAuctionDto;
+import com.pieceofcake.auction_service.auction.dto.in.UpdateAuctionDto;
 import com.pieceofcake.auction_service.auction.dto.out.ReadHighestBidPriceResponseDto;
 import com.pieceofcake.auction_service.auction.entity.Auction;
 import com.pieceofcake.auction_service.auction.infrastructure.AuctionRepository;
 import com.pieceofcake.auction_service.common.entity.BaseResponseStatus;
 import com.pieceofcake.auction_service.common.exception.BaseException;
-import com.pieceofcake.auction_service.common.sse.SseEmitterService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 @Slf4j

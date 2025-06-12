@@ -1,4 +1,4 @@
-package com.pieceofcake.auction_service.auction.vo.out;
+package com.pieceofcake.auction_service.auction.vo.in;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -10,7 +10,6 @@ public class UpdateAuctionVo {
     private String auctionUuid;  // 경매 UUID
     private Long bidPrice;
     private String memberUuid;
-    private Long timestamp;
 
     @Builder
     public UpdateAuctionVo(
@@ -21,6 +20,5 @@ public class UpdateAuctionVo {
         this.auctionUuid = auctionUuid;
         this.bidPrice = bidPrice;
         this.memberUuid = memberUuid;
-        this.timestamp = timestamp;
     }
 }

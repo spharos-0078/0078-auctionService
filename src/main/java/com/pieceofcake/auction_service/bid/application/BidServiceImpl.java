@@ -1,7 +1,7 @@
 package com.pieceofcake.auction_service.bid.application;
 
 import com.pieceofcake.auction_service.auction.application.AuctionService;
-import com.pieceofcake.auction_service.auction.dto.out.UpdateAuctionDto;
+import com.pieceofcake.auction_service.auction.dto.in.UpdateAuctionDto;
 import com.pieceofcake.auction_service.bid.dto.in.ReadMyAuctionsRequestDto;
 import com.pieceofcake.auction_service.bid.dto.out.CreateBidResponseDto;
 import com.pieceofcake.auction_service.bid.dto.out.ReadMyAuctionsResponseDto;
@@ -40,8 +40,13 @@ public class BidServiceImpl implements BidService{
 
         // 1. redis 최고가와 비교
         String redisHighestBidKey = "auction:highestBid:" + auctionUuid;
-        String highestBidPriceStr = (String) redisTemplate.opsForHash().get(redisHighestBidKey, "bidPrice");
-        Long highestBidPrice = highestBidPriceStr != null ? Long.parseLong(highestBidPriceStr) : 0L;
+        Map<Object, Object> redisHighestBidMap = redisTemplate.opsForHash().entries(redisHighestBidKey);
+        Long highestBidPrice = redisHighestBidMap.get("bidPrice") != null
+                ? Long.parseLong((String) redisHighestBidMap.get("bidPrice"))
+                : 0L;
+        Long lastUpdateTimestamp = redisHighestBidMap.get("timestamp") != null
+                ? Long.parseLong((String) redisHighestBidMap.get("timestamp"))
+                : 0L;
 
         // 2. 최고가가 아니면, bid SQL에 저장, 유저에게 입찰 실패 로직 전달
         //    지금은 대응되는 auctionUuid 없어도 일단 bid SQL에 저장.
@@ -52,36 +57,49 @@ public class BidServiceImpl implements BidService{
                     .success(false)
                     .message("입찰 실패")
                     .build();
-        } else {
-        // 3. 최고가면, redis에 최고가 갈아끼우기
-            Map<String, String> bidData = new HashMap<>();
-            bidData.put("bidPrice", String.valueOf(bid.getBidPrice()));
-            bidData.put("bidUuid", bid.getBidUuid());
-            bidData.put("bidMemberUuid", bid.getMemberUuid());
-            bidData.put("timestamp", String.valueOf(currentTimestamp));
-            redisTemplate.opsForHash().putAll(redisHighestBidKey, bidData);
+        }
 
-            redisTemplate.expire(redisHighestBidKey, Duration.ofDays(14));  // 2주 간 저장
+        // 3. 최고가면, redis에 최고가 갈아끼우기
+        Map<String, String> bidData = new HashMap<>();
+        bidData.put("bidPrice", String.valueOf(bid.getBidPrice()));
+        bidData.put("bidUuid", bid.getBidUuid());
+        bidData.put("bidMemberUuid", bid.getMemberUuid());
+        bidData.put("timestamp", String.valueOf(currentTimestamp));
+        redisTemplate.opsForHash().putAll(redisHighestBidKey, bidData);
+
+        redisTemplate.expire(redisHighestBidKey, Duration.ofDays(14));  // 2주 간 저장
+
         // 4. 경매 상태 업데이트.
+        //    트래픽 판단 후, 분기처리해서 스케쥴러 turn on/off
         //    요청량 많으면 redis에 최고가 저장하고, 경매 상태 업데이트는 묶음(batch)로 처리.
         //    이 때 이전 최고가 timestamp와 현재 최고가 timestamp 간격을 비교, 짧으면 batch 처리 + scheduler 사용해서 경매 sql 업데이트
         //    이후 bid SQL에 저장
-            auctionService.updateAuction(UpdateAuctionDto.builder()
-                    .auctionUuid(auctionUuid)
-                    .bidUuid(bid.getBidUuid())
-                    .bidPrice(bid.getBidPrice())
-                    .memberUuid(bid.getMemberUuid())
-                    .timestamp(currentTimestamp)
-                    .build()
-            );
 
-            bidRepository.save(bid);
-
-            return CreateBidResponseDto.builder()
-                    .success(true)
-                    .message("입찰 성공")
-                    .build();
+        boolean flag = redisTemplate.hasKey("auction:useScheduler:" + auctionUuid);
+        // flag가 true면 이미 트래픽이 많은 상태
+        // 그냥 bid 저장하고 끝
+        if (!flag) {
+            // flag가 없으면, 트래픽 많은지 적은지 비교
+            if (currentTimestamp - lastUpdateTimestamp < 100) {
+                // 트래픽이 많음, flag 작성. 끝
+                redisTemplate.opsForValue().set("auction:useScheduler:" + auctionUuid, "true", Duration.ofSeconds(3));
+            } else {
+                // 트래픽이 적음, 바로 경매 상태 업데이트
+                auctionService.updateAuction(UpdateAuctionDto.builder()
+                        .auctionUuid(auctionUuid)
+                        .bidUuid(bid.getBidUuid())
+                        .bidPrice(bid.getBidPrice())
+                        .memberUuid(bid.getMemberUuid())
+                        .build());
+            }
         }
+
+        bidRepository.save(bid);
+
+        return CreateBidResponseDto.builder()
+                .success(true)
+                .message("입찰 성공")
+                .build();
     }
 
     @Override
