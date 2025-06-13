@@ -16,6 +16,7 @@ import com.pieceofcake.auction_service.common.entity.BaseResponseStatus;
 import com.pieceofcake.auction_service.common.exception.BaseException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +24,9 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BidServiceImpl implements BidService{
@@ -75,23 +78,38 @@ public class BidServiceImpl implements BidService{
         //    이 때 이전 최고가 timestamp와 현재 최고가 timestamp 간격을 비교, 짧으면 batch 처리 + scheduler 사용해서 경매 sql 업데이트
         //    이후 bid SQL에 저장
 
-        boolean flag = redisTemplate.hasKey("auction:useScheduler:" + auctionUuid);
-        // flag가 true면 이미 트래픽이 많은 상태
-        // 그냥 bid 저장하고 끝
-        if (!flag) {
-            // flag가 없으면, 트래픽 많은지 적은지 비교
-            if (currentTimestamp - lastUpdateTimestamp < 100) {
-                // 트래픽이 많음, flag 작성. 끝
-                redisTemplate.opsForValue().set("auction:useScheduler:" + auctionUuid, "true", Duration.ofSeconds(3));
-            } else {
-                // 트래픽이 적음, 바로 경매 상태 업데이트
-                auctionService.updateAuction(UpdateAuctionDto.builder()
-                        .auctionUuid(auctionUuid)
-                        .bidUuid(bid.getBidUuid())
-                        .bidPrice(bid.getBidPrice())
-                        .memberUuid(bid.getMemberUuid())
-                        .build());
+        // 현재 flag의 남은 만료 시간 확인 (밀리초 단위)
+        Long remainingTTL = redisTemplate.getExpire("auction:useScheduler:" + auctionUuid, TimeUnit.MILLISECONDS);
+
+        if (currentTimestamp - lastUpdateTimestamp < 100) {
+            // 트래픽이 많음
+            // 1. flag 있고 TTL 많으면 넘어감
+            // 2. flag 있고 TTL 적으면 갱신
+            // 3. flag 없으면 생성
+
+            // flag 상태 확인
+            if (remainingTTL == null) {
+                // Redis 연결 오류 등 (일반적으로 발생하지 않음)
+                log.warn("Redis getExpire returned null for key: auction:useScheduler:{}", auctionUuid);
+            } else if (remainingTTL == -2) {
+                // 3. flag가 없는 경우: 새로 생성
+                redisTemplate.opsForValue().set("auction:useScheduler:" + auctionUuid, "true", Duration.ofSeconds(2));
+            } else if (remainingTTL == -1) {
+                // flag가 영구적인 경우 (일반적으로는 발생하지 않음)
+                log.warn("Found permanent flag for auction:useScheduler:{}", auctionUuid);
+            } else if (remainingTTL <= 500) {
+                // 2. flag가 있고 TTL이 1초 이하로 적은 경우: 갱신
+                redisTemplate.opsForValue().set("auction:useScheduler:" + auctionUuid, "true", Duration.ofSeconds(2));
             }
+
+        } else {
+            // 트래픽이 적음, 바로 경매 상태 업데이트
+            auctionService.updateAuction(UpdateAuctionDto.builder()
+                    .auctionUuid(auctionUuid)
+                    .bidUuid(bid.getBidUuid())
+                    .bidPrice(bid.getBidPrice())
+                    .memberUuid(bid.getMemberUuid())
+                    .build());
         }
 
         bidRepository.save(bid);

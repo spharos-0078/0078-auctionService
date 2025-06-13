@@ -48,8 +48,8 @@ public class BatchAuctionScheduler {
                     .memberUuid(bidMemberUuid)
                     .build());
 
-            // 처리 완료된 flag 삭제
-            redisTemplate.delete(batchKey);
+            // 처리 완료된 flag 삭제. 할 필요 없을 듯?
+//            redisTemplate.delete(batchKey);
 
         }
     }
