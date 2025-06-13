@@ -1,4 +1,4 @@
-package com.pieceofcake.auction_service.auction.dto.in;
+package com.pieceofcake.auction_service.bid.dto.in;
 
 import lombok.Builder;
 import lombok.Getter;

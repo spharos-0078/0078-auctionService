@@ -1,4 +1,4 @@
-package com.pieceofcake.auction_service.auction.vo.out;
+package com.pieceofcake.auction_service.bid.vo.out;
 
 import lombok.Builder;
 import lombok.Getter;

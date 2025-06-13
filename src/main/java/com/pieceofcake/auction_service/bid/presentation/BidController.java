@@ -4,12 +4,16 @@ import com.pieceofcake.auction_service.bid.application.BidService;
 import com.pieceofcake.auction_service.bid.dto.in.CreateBidRequestDto;
 import com.pieceofcake.auction_service.bid.dto.in.ReadAllBidsByAuctionRequestDto;
 import com.pieceofcake.auction_service.bid.dto.in.ReadBidRequestDto;
+import com.pieceofcake.auction_service.bid.dto.in.ReadMyAuctionsRequestDto;
 import com.pieceofcake.auction_service.bid.dto.out.ReadAllBidsByAuctionResponseDto;
+import com.pieceofcake.auction_service.bid.dto.out.ReadMyAuctionsResponseDto;
 import com.pieceofcake.auction_service.bid.vo.in.CreateBidRequestVo;
 import com.pieceofcake.auction_service.bid.vo.in.ReadAllBidsByAuctionRequestVo;
 import com.pieceofcake.auction_service.bid.vo.in.ReadBidRequestVo;
+import com.pieceofcake.auction_service.bid.vo.out.CreateBidResponseVo;
 import com.pieceofcake.auction_service.bid.vo.out.ReadAllBidsByAuctionResponseVo;
 import com.pieceofcake.auction_service.bid.vo.out.ReadBidResponseVo;
+import com.pieceofcake.auction_service.bid.vo.out.ReadMyAuctionsResponseVo;
 import com.pieceofcake.auction_service.common.entity.BaseResponseEntity;
 import com.pieceofcake.auction_service.common.entity.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
@@ -25,12 +29,13 @@ public class BidController {
     private final BidService bidService;
 
     @PostMapping("")
-    public BaseResponseEntity<Void> createBid(
+    public BaseResponseEntity<CreateBidResponseVo> createBid(
             @RequestHeader(value = "X-Member-Uuid") String memberUuid,
             @RequestBody CreateBidRequestVo createBidRequestVo
     ){
-        bidService.createBid(CreateBidRequestDto.of(memberUuid, createBidRequestVo));
-        return new BaseResponseEntity<>(BaseResponseStatus.SUCCESS);
+        CreateBidResponseVo result = bidService.createBid(
+                CreateBidRequestDto.of(memberUuid, createBidRequestVo)).toVo();
+        return new BaseResponseEntity<>(result);
     }
 
     @GetMapping("/me/{auctionUuid}")
@@ -55,5 +60,16 @@ public class BidController {
                         .map(ReadAllBidsByAuctionResponseDto::toVo)
                         .toList()
         );
+    }
+
+    @GetMapping("/me/auctions")
+    public List<ReadMyAuctionsResponseVo> getMyBidAuctions(
+            @RequestHeader(value = "X-Member-Uuid") String memberUuid
+    ) {
+
+        return bidService.readMyAuctions(ReadMyAuctionsRequestDto.of(memberUuid))
+                .stream()
+                .map(ReadMyAuctionsResponseDto::toVo)
+                .toList();
     }
 }

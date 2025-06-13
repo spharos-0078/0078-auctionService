@@ -27,10 +27,13 @@ public class Auction {
     @Column(name = "starting_price", nullable = false)
     private Long startingPrice;
 
-    @Column(name = "highest_bid_price", nullable = false)
+    @Column(name = "highest_bid_uuid")
+    private String highestBidUuid;
+
+    @Column(name = "highest_bid_price")
     private Long highestBidPrice;
 
-    @Column(name = "highest_bid_member_uuid", nullable = true)
+    @Column(name = "highest_bid_member_uuid")
     private String highestBidMemberUuid;
 
     @Column(name = "start_Date", nullable = false)
@@ -40,25 +43,29 @@ public class Auction {
     private LocalDateTime endDate;
 
     @Column(name = "auction_status")
-    private AuctionStatus auctionStatus = AuctionStatus.ONGOING;
+    private AuctionStatus auctionStatus;
 
     @Builder
     public Auction(
+            Long id,
             String auctionUuid,
             String productUuid,
             Long startingPrice,
+            String highestBidUuid,
             Long highestBidPrice,
             String highestBidMemberUuid,
             LocalDateTime startDate,
             LocalDateTime endDate,
-            AuctionStatus auctionStatus) {
+            AuctionStatus auctionStatus
+    ) {
+        this.id = id;
         this.auctionUuid = auctionUuid;
         this.productUuid = productUuid;
         this.startingPrice = startingPrice;
+        this.highestBidUuid = highestBidUuid;
         this.highestBidPrice = highestBidPrice;
         this.highestBidMemberUuid = highestBidMemberUuid;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.auctionStatus = auctionStatus;
     }
 }
