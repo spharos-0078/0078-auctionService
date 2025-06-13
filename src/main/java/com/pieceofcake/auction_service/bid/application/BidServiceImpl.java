@@ -102,8 +102,8 @@ public class BidServiceImpl implements BidService{
                 redisTemplate.opsForValue().set("auction:useScheduler:" + auctionUuid, "true", Duration.ofSeconds(2));
             }
 
-        } else {
-            // 트래픽이 적음, 바로 경매 상태 업데이트
+        } else if (remainingTTL == -2){
+            // 트래픽이 적고, flag 없으면, 바로 경매 상태 업데이트
             auctionService.updateAuction(UpdateAuctionDto.builder()
                     .auctionUuid(auctionUuid)
                     .bidUuid(bid.getBidUuid())
