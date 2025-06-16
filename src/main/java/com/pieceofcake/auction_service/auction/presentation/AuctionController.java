@@ -1,14 +1,13 @@
 package com.pieceofcake.auction_service.auction.presentation;
 
 import com.pieceofcake.auction_service.auction.application.AuctionService;
+import com.pieceofcake.auction_service.auction.application.sse.AuctionEventService;
 import com.pieceofcake.auction_service.auction.dto.in.CreateAuctionRequestDto;
 import com.pieceofcake.auction_service.auction.dto.in.ReadHighestBidPriceRequestDto;
-import com.pieceofcake.auction_service.bid.dto.in.ReadMyAuctionsRequestDto;
-import com.pieceofcake.auction_service.bid.dto.out.ReadMyAuctionsResponseDto;
+import com.pieceofcake.auction_service.auction.dto.out.UpdateAuctionPriceSseDto;
 import com.pieceofcake.auction_service.auction.vo.in.CreateAuctionRequestVo;
 import com.pieceofcake.auction_service.auction.vo.in.ReadHighestBidPriceRequestVo;
 import com.pieceofcake.auction_service.auction.vo.out.ReadHighestBidPriceResponseVo;
-import com.pieceofcake.auction_service.bid.vo.out.ReadMyAuctionsResponseVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
@@ -23,6 +22,7 @@ import java.util.List;
 public class AuctionController {
 
     private final AuctionService auctionService;
+    private final AuctionEventService auctionEventService;
 
     @GetMapping("/highest-price/{auctionUuid}")
     public ReadHighestBidPriceResponseVo getHighestPrice(
@@ -42,14 +42,14 @@ public class AuctionController {
         auctionService.createAuction(CreateAuctionRequestDto.from(createAuctionRequestVo));
     }
 
-
-//    @GetMapping(value="/{auctionUuid}/subscribe", produces= MediaType.TEXT_EVENT_STREAM_VALUE)
-//    public Flux<ServerSentEvent<BidUpdateVo>> subscribaAuction(@PathVariable String auctionUuid) {
-//        return auctionService.subscribeAuction(auctionUuid)
-//                .map(bidUpdate -> ServerSentEvent.builder(bidUpdate)
-//                        .event("bid-update")
-//                        .id(bidUpdate.getBidUuid())
-//                        .build());
-//    }
+    @GetMapping(value = "/sse/price-updates/{auctionUuid}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ServerSentEvent<UpdateAuctionPriceSseDto>> streamAuctionPriceUpdates(
+            @PathVariable("auctionUuid") String auctionUuid) {
+        return auctionEventService.getAuctionPriceUpdatesByAuctionId(auctionUuid)
+                .map(event -> ServerSentEvent.<UpdateAuctionPriceSseDto>builder()
+                        .event("price-update")
+                        .data(event)
+                        .build());
+    }
 
 }
