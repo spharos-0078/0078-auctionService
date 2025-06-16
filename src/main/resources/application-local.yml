@@ -1,0 +1,35 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/piece_of_cake_local
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 1234
+
+  redis:
+    host: localhost
+    port: 6379
+    username: redis123
+    password: 1234
+
+  kafka:
+    bootstrap-servers: localhost:10000,localhost:10001,localhost:10002
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      batch-size: 16384
+      linger-ms: 10
+      buffer-memory: 33554432
+      acks: all
+      retries: 3
+    consumer:
+      group-id: bid-batch-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: false
+      max-poll-records: 100
+      auto-offset-reset: earliest
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
