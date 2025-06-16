@@ -1,10 +1,13 @@
 package com.pieceofcake.auction_service.common.config;
 
+import com.pieceofcake.auction_service.auction.application.sse.AuctionEventService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -13,6 +16,31 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  */
 @Configuration
 public class RedisConfig {
+
+    // SSE를 다중 서버에서도 동작하게 만들기 위한 Redis Pub/Sub 설정
+    @Bean
+    public ChannelTopic auctionPriceTopic() {
+        return new ChannelTopic("auction-price-updates");
+    }
+
+    // 직렬화/역직렬화 방식 설정
+    @Bean
+    public GenericJackson2JsonRedisSerializer genericJsonRedisSerializer() {
+        return new GenericJackson2JsonRedisSerializer();
+    }
+
+    // 메시지 수신 리스너 등록
+    @Bean
+    public RedisMessageListenerContainer redisMessageListenerContainer(
+            RedisConnectionFactory connectionFactory,
+            AuctionEventService auctionEventService,
+            ChannelTopic topic
+    ) {
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+        container.addMessageListener(auctionEventService, topic);
+        return container;
+    }
 
     /**
      * Redis ConnectionFactory 설정.
@@ -45,12 +73,17 @@ public class RedisConfig {
      * 필요에 따라 사용하세요.
      */
     @Bean
-    public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<Object, Object> template = new RedisTemplate<>();
+    public RedisTemplate<String, Object> redisTemplate(
+            RedisConnectionFactory connectionFactory,
+            GenericJackson2JsonRedisSerializer genericJsonRedisSerializer
+    ) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         // 키를 String으로, 값은 JSON 직렬화 등으로 설정 가능
         template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(genericJsonRedisSerializer);
+        template.setHashValueSerializer(genericJsonRedisSerializer);
         return template;
     }
 }
