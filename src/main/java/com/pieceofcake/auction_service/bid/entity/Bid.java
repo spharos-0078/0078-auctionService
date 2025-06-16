@@ -32,8 +32,8 @@ public class Bid extends BaseEntity {
     @Column(name = "is_highest_bid")
     private Boolean isHighestBid;
 
-    @Column(name = "is_hidden")
-    private Boolean isHidden;
+    @Column(name = "hidden")
+    private Boolean hidden;
 
     @Builder
     public Bid(
@@ -43,7 +43,7 @@ public class Bid extends BaseEntity {
             String memberUuid,
             Long bidPrice,
             Boolean isHighestBid,
-            Boolean isHidden
+            Boolean hidden
     ) {
         this.id = id;
         this.bidUuid = bidUuid;
@@ -51,7 +51,7 @@ public class Bid extends BaseEntity {
         this.memberUuid = memberUuid;
         this.bidPrice = bidPrice;
         this.isHighestBid = isHighestBid;
-        this.isHidden = isHidden;
+        this.hidden = hidden;
     }
 
 }

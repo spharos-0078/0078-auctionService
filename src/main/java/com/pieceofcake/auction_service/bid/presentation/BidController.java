@@ -3,6 +3,7 @@ package com.pieceofcake.auction_service.bid.presentation;
 import com.pieceofcake.auction_service.bid.application.BidService;
 import com.pieceofcake.auction_service.bid.dto.in.*;
 import com.pieceofcake.auction_service.bid.dto.out.ReadAllBidsByAuctionResponseDto;
+import com.pieceofcake.auction_service.bid.dto.out.ReadBidResponseDto;
 import com.pieceofcake.auction_service.bid.dto.out.ReadMyAuctionsResponseDto;
 import com.pieceofcake.auction_service.bid.vo.in.CreateBidRequestVo;
 import com.pieceofcake.auction_service.bid.vo.in.HideBidRequestVo;
@@ -37,11 +38,14 @@ public class BidController {
     }
 
     @GetMapping("/me/{auctionUuid}")
-    public BaseResponseEntity<ReadBidResponseVo> getMyBidPrice(
+    public BaseResponseEntity<List<ReadBidResponseVo>> getMyBidPrice(
             @RequestHeader(value = "X-Member-Uuid") String memberUuid,
             @ModelAttribute ReadBidRequestVo readBidRequestVo
     ) {
-        return new BaseResponseEntity<>(bidService.readBid(ReadBidRequestDto.of(memberUuid, readBidRequestVo)).toVo());
+        return new BaseResponseEntity<>(bidService.readBids(ReadBidRequestDto.of(memberUuid, readBidRequestVo))
+                .stream()
+                .map(ReadBidResponseDto::toVo)
+                .toList());
     }
 
     @GetMapping("/list/{auctionUuid}")

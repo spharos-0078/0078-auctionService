@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface BidRepository extends JpaRepository<Bid, Long> {
 
-    Optional<Bid> findByAuctionUuidAndMemberUuidAndDeletedFalse(String auctionUuid, String memberUuid);
+    List<Bid> findByAuctionUuidAndMemberUuidAndDeletedFalseAndHiddenFalseOrderByCreatedAtDesc(String auctionUuid, String memberUuid);
 
     @Query("SELECT DISTINCT b.auctionUuid FROM Bid b WHERE b.memberUuid = :memberUuid")
     List<String> findDistinctAuctionUuidsByMemberUuid(@Param("memberUuid") String memberUuid);

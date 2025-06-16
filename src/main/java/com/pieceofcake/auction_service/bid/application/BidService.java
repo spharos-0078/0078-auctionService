@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface BidService {
     CreateBidResponseDto createBid(CreateBidRequestDto createBidRequestDto);
-    ReadBidResponseDto readBid(ReadBidRequestDto readBidRequestDto);
+    List<ReadBidResponseDto> readBids(ReadBidRequestDto readBidRequestDto);
     List<ReadMyAuctionsResponseDto> readMyAuctions(ReadMyAuctionsRequestDto readMyAuctionsRequestDto);
     List<ReadAllBidsByAuctionResponseDto> getBidsByAuctionUuid(
             ReadAllBidsByAuctionRequestDto readAllBidsByAuctionRequestDto);

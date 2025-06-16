@@ -118,13 +118,16 @@ public class BidServiceImpl implements BidService{
     }
 
     @Override
-    public ReadBidResponseDto readBid(ReadBidRequestDto readBidRequestDto) {
-        return ReadBidResponseDto.from(bidRepository.findByAuctionUuidAndMemberUuidAndDeletedFalse(
+    public List<ReadBidResponseDto> readBids(ReadBidRequestDto readBidRequestDto) {
+
+        List<Bid> bids = bidRepository.findByAuctionUuidAndMemberUuidAndDeletedFalseAndHiddenFalseOrderByCreatedAtDesc(
                 readBidRequestDto.getAuctionUuid(),
                 readBidRequestDto.getMemberUuid()
-            )
-            .orElseThrow(() -> new BaseException(BaseResponseStatus.BID_NOT_FOUND))
         );
+
+        return bids.stream()
+                .map(ReadBidResponseDto::from)
+                .toList();
     }
 
     @Override

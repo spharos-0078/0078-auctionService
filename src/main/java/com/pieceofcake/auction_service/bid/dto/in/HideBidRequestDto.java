@@ -33,7 +33,7 @@ public class HideBidRequestDto {
                 .memberUuid(bid.getMemberUuid())
                 .bidPrice(bid.getBidPrice())
                 .isHighestBid(bid.getIsHighestBid())
-                .isHidden(false) // Hide the bid
+                .hidden(true)
                 .build();
     }
 }
