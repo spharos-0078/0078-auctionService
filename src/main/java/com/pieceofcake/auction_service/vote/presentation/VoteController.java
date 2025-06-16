@@ -26,5 +26,5 @@ public class VoteController {
         return new BaseResponseEntity<>(BaseResponseStatus.SUCCESS);
     }
 
-    
+
 }

@@ -39,6 +39,18 @@ public class Vote extends BaseEntity {
     @Column(name = "status", nullable = false)
     private VoteStatus status;
 
+    @Column(name = "agree_count")
+    private Long agreeCount;
+
+    @Column(name = "disagree_count")
+    private Long disagreeCount;
+
+    @Column(name = "no_vote_count")
+    private Long noVoteCount;
+
+    @Column(name = "total_count")
+    private Long totalCount;
+
     @Builder
     public Vote(
             Long id,
@@ -47,7 +59,11 @@ public class Vote extends BaseEntity {
             Long startingPrice,
             LocalDateTime startDate,
             LocalDateTime endDate,
-            VoteStatus status
+            VoteStatus status,
+            Long agreeCount,
+            Long disagreeCount,
+            Long noVoteCount,
+            Long totalCount
     ) {
         this.id = id;
         this.voteUuid = voteUuid;
@@ -56,5 +72,9 @@ public class Vote extends BaseEntity {
         this.startDate = startDate;
         this.endDate = endDate;
         this.status = status;
+        this.agreeCount = agreeCount;
+        this.disagreeCount = disagreeCount;
+        this.noVoteCount = noVoteCount;
+        this.totalCount = totalCount;
     }
 }
