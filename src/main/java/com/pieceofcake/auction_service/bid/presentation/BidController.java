@@ -1,13 +1,11 @@
 package com.pieceofcake.auction_service.bid.presentation;
 
 import com.pieceofcake.auction_service.bid.application.BidService;
-import com.pieceofcake.auction_service.bid.dto.in.CreateBidRequestDto;
-import com.pieceofcake.auction_service.bid.dto.in.ReadAllBidsByAuctionRequestDto;
-import com.pieceofcake.auction_service.bid.dto.in.ReadBidRequestDto;
-import com.pieceofcake.auction_service.bid.dto.in.ReadMyAuctionsRequestDto;
+import com.pieceofcake.auction_service.bid.dto.in.*;
 import com.pieceofcake.auction_service.bid.dto.out.ReadAllBidsByAuctionResponseDto;
 import com.pieceofcake.auction_service.bid.dto.out.ReadMyAuctionsResponseDto;
 import com.pieceofcake.auction_service.bid.vo.in.CreateBidRequestVo;
+import com.pieceofcake.auction_service.bid.vo.in.HideBidRequestVo;
 import com.pieceofcake.auction_service.bid.vo.in.ReadAllBidsByAuctionRequestVo;
 import com.pieceofcake.auction_service.bid.vo.in.ReadBidRequestVo;
 import com.pieceofcake.auction_service.bid.vo.out.CreateBidResponseVo;
@@ -71,5 +69,19 @@ public class BidController {
                 .stream()
                 .map(ReadMyAuctionsResponseDto::toVo)
                 .toList();
+    }
+
+    @PostMapping("/me/hide/{bidUuid}")
+    public BaseResponseEntity<Void> hideMyBid(
+            @RequestHeader(value = "X-Member-Uuid") String memberUuid,
+            @PathVariable("bidUuid") String bidUuid
+    ) {
+        HideBidRequestVo hideBidRequestVo = HideBidRequestVo.builder()
+                .memberUuid(memberUuid)
+                .bidUuid(bidUuid)
+                .build();
+
+        bidService.hideBid(HideBidRequestDto.from(hideBidRequestVo));
+        return new BaseResponseEntity<>(BaseResponseStatus.SUCCESS);
     }
 }

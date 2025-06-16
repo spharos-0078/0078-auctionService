@@ -16,4 +16,6 @@ public interface BidRepository extends JpaRepository<Bid, Long> {
     List<String> findDistinctAuctionUuidsByMemberUuid(@Param("memberUuid") String memberUuid);
 
     List<Bid> findAllByAuctionUuidAndDeletedFalse(String auctionUuid);
+
+    Optional<Bid> findByBidUuidAndMemberUuidAndDeletedFalse(String bidUuid, String memberUuid);
 }
