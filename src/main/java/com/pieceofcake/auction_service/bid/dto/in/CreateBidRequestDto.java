@@ -37,7 +37,7 @@ public class CreateBidRequestDto {
                 .memberUuid(memberUuid)
                 .bidPrice(bidPrice)
                 .isHighestBid(true)
-                .isHidden(false)
+                .hidden(false)
                 .build();
     }
 }

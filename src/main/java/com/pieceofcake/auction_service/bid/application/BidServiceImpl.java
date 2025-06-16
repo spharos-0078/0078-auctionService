@@ -2,12 +2,9 @@ package com.pieceofcake.auction_service.bid.application;
 
 import com.pieceofcake.auction_service.auction.application.AuctionService;
 import com.pieceofcake.auction_service.auction.dto.in.UpdateAuctionDto;
-import com.pieceofcake.auction_service.bid.dto.in.ReadMyAuctionsRequestDto;
+import com.pieceofcake.auction_service.bid.dto.in.*;
 import com.pieceofcake.auction_service.bid.dto.out.CreateBidResponseDto;
 import com.pieceofcake.auction_service.bid.dto.out.ReadMyAuctionsResponseDto;
-import com.pieceofcake.auction_service.bid.dto.in.CreateBidRequestDto;
-import com.pieceofcake.auction_service.bid.dto.in.ReadAllBidsByAuctionRequestDto;
-import com.pieceofcake.auction_service.bid.dto.in.ReadBidRequestDto;
 import com.pieceofcake.auction_service.bid.dto.out.ReadAllBidsByAuctionResponseDto;
 import com.pieceofcake.auction_service.bid.dto.out.ReadBidResponseDto;
 import com.pieceofcake.auction_service.bid.entity.Bid;
@@ -121,13 +118,16 @@ public class BidServiceImpl implements BidService{
     }
 
     @Override
-    public ReadBidResponseDto readBid(ReadBidRequestDto readBidRequestDto) {
-        return ReadBidResponseDto.from(bidRepository.findByAuctionUuidAndMemberUuidAndDeletedFalse(
+    public List<ReadBidResponseDto> readBids(ReadBidRequestDto readBidRequestDto) {
+
+        List<Bid> bids = bidRepository.findByAuctionUuidAndMemberUuidAndDeletedFalseAndHiddenFalseOrderByCreatedAtDesc(
                 readBidRequestDto.getAuctionUuid(),
                 readBidRequestDto.getMemberUuid()
-            )
-            .orElseThrow(() -> new BaseException(BaseResponseStatus.BID_NOT_FOUND))
         );
+
+        return bids.stream()
+                .map(ReadBidResponseDto::from)
+                .toList();
     }
 
     @Override
@@ -149,5 +149,18 @@ public class BidServiceImpl implements BidService{
                 .stream()
                 .map(ReadAllBidsByAuctionResponseDto::from)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public void hideBid(HideBidRequestDto hideBidRequestDto) {
+        Bid bid = bidRepository.findByBidUuidAndMemberUuidAndDeletedFalse(
+                hideBidRequestDto.getBidUuid(),
+                hideBidRequestDto.getMemberUuid()
+        ).orElseThrow(() -> new BaseException(BaseResponseStatus.BID_NOT_FOUND));
+
+        // 입찰 숨기기
+        bidRepository.save(hideBidRequestDto.udpateEntity(bid));
+
     }
 }
