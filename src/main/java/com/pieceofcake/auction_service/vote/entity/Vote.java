@@ -26,25 +26,35 @@ public class Vote extends BaseEntity {
     @Column(name = "product_uuid", nullable = false)
     private String productUuid;
 
-    @Column(name = "starting_date", nullable = false, columnDefinition = "DATETIME(0)")
-    private LocalDateTime startingDate;
+    @Column(name = "starting_price", nullable = false)
+    private Long startingPrice;
+
+    @Column(name = "start_date", nullable = false)
+    private LocalDateTime startDate;
 
     @Column(name = "end_date", nullable = false)
     private LocalDateTime endDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "vote_status", nullable = false)
-    private VoteStatus voteStatus;
+    @Column(name = "status", nullable = false)
+    private VoteStatus status;
 
     @Builder
-    public Vote(String voteUuid, String productUuid, LocalDateTime startingDate, LocalDateTime endDate, VoteStatus voteStatus) {
+    public Vote(
+            Long id,
+            String voteUuid,
+            String productUuid,
+            Long startingPrice,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            VoteStatus status
+    ) {
+        this.id = id;
         this.voteUuid = voteUuid;
         this.productUuid = productUuid;
-        this.startingDate = startingDate;
+        this.startingPrice = startingPrice;
+        this.startDate = startDate;
         this.endDate = endDate;
-        this.voteStatus = voteStatus;
+        this.status = status;
     }
-
-
-
 }

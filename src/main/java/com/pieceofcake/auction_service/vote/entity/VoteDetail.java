@@ -26,19 +26,20 @@ public class VoteDetail {
     @Column(name = "member_uuid", nullable = false)
     private String memberUuid;
 
-    @Column(name = "quantity", nullable = false)
-    public Long quantity;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "vote_choice", nullable = false)
     private VoteChoice voteChoice;
 
     @Builder
-    public VoteDetail(String voteDetailUuid, String voteUuid, String memberUuid, Long quantity, VoteChoice voteChoice) {
+    public VoteDetail(
+            String voteDetailUuid,
+            String voteUuid,
+            String memberUuid,
+            VoteChoice voteChoice
+    ) {
         this.voteDetailUuid = voteDetailUuid;
         this.voteUuid = voteUuid;
         this.memberUuid = memberUuid;
-        this.quantity = quantity;
         this.voteChoice = voteChoice;
     }
 }
