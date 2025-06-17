@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  auth-service:
+    container_name: auction-service
+    image: ${DOCKER_USERNAME}/auction-service:latest
+    ports:
+      - "8088:8088"
+    env_file:
+      - .env
+    networks:
+      - backend
+
+networks:
+  backend:
+    external: true
