@@ -6,8 +6,11 @@ import com.pieceofcake.auction_service.vote.application.VoteDetailService;
 import com.pieceofcake.auction_service.vote.application.VoteService;
 import com.pieceofcake.auction_service.vote.dto.in.CreateVoteDetailRequestDto;
 import com.pieceofcake.auction_service.vote.dto.in.CreateVoteRequestDto;
+import com.pieceofcake.auction_service.vote.dto.in.ReadVoteDetailRequestDto;
 import com.pieceofcake.auction_service.vote.vo.in.CreateVoteDetailRequestVo;
 import com.pieceofcake.auction_service.vote.vo.in.CreateVoteRequestVo;
+import com.pieceofcake.auction_service.vote.vo.in.ReadVoteDetailRequestVo;
+import com.pieceofcake.auction_service.vote.vo.out.ReadVoteDetailResponseVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,5 +39,16 @@ public class VoteController {
         return new BaseResponseEntity<>(BaseResponseStatus.SUCCESS);
     }
 
+    @GetMapping("/detail")
+    public BaseResponseEntity<ReadVoteDetailResponseVo> getVoteDetail(
+            @RequestHeader(value = "X-Member-Uuid") String memberUuid,
+            @RequestParam ReadVoteDetailRequestVo readVoteDetailRequestVo
+            ) {
+        ReadVoteDetailResponseVo result = voteDetailService.readVoteDetail(
+                ReadVoteDetailRequestDto.from(readVoteDetailRequestVo, memberUuid)
+        ).toVo();
+
+        return new BaseResponseEntity<>(result);
+    }
 
 }
