@@ -34,6 +34,15 @@ public enum BaseResponseStatus {
     // 3100: auction service error
     AUCTION_NOT_FOUND(HttpStatus.NOT_FOUND, false, 3100, "경매를 찾을 수 없습니다."),
 
+    // 3200: vote service error
+    ALREADY_VOTED(HttpStatus.BAD_REQUEST, false, 3200, "이미 투표한 경매입니다."),
+    VOTE_DETAIL_NOT_FOUND(HttpStatus.NOT_FOUND, false, 3201, "투표 내역을 찾을 수 없습니다."),
+    VOTE_NOT_FOUND(HttpStatus.NOT_FOUND, false, 3202, "투표를 찾을 수 없습니다."),
+
+
+
+
+
     INVALID_USER_INPUT(HttpStatus.BAD_REQUEST, false, 3000, "유효하지 않은 사용자 입력입니다.");
 
     private final HttpStatusCode httpStatusCode;

@@ -32,3 +32,7 @@ eureka:
   client:
     register-with-eureka: true
     fetch-registry: true
+
+piece-service:
+  url: ${EC2_HOST:http://localhost:8000/piece-service}
+
