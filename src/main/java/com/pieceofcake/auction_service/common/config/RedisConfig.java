@@ -1,9 +1,11 @@
 package com.pieceofcake.auction_service.common.config;
 
 import com.pieceofcake.auction_service.auction.application.sse.AuctionEventService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.listener.ChannelTopic;
@@ -11,11 +13,20 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+import java.time.Duration;
+
 /**
  * Redis 연결 및 RedisTemplate 설정
  */
 @Configuration
 public class RedisConfig {
+
+    @Value("${spring.data.redis.host}")
+    private String redisHost;
+    @Value("${spring.data.redis.port}")
+    private int redisPort;
+    @Value("${spring.data.redis.password}")
+    private String redisPassword;
 
     // SSE를 다중 서버에서도 동작하게 만들기 위한 Redis Pub/Sub 설정
     @Bean
@@ -49,14 +60,16 @@ public class RedisConfig {
      */
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-        // 기본 설정: localhost:<port>
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-        config.setHostName("localhost");
-        config.setPort(6379);
+        RedisStandaloneConfiguration redisConfig = new RedisStandaloneConfiguration();
+        redisConfig.setHostName(redisHost);
+        redisConfig.setPort(redisPort);
+        redisConfig.setPassword(redisPassword);
+
         // 필요시 비밀번호, 데이터베이스 인덱스 설정
-        // config.setPassword(RedisPassword.of("yourPassword"));
-        // config.setDatabase(1);
-        return new LettuceConnectionFactory(config);
+        LettuceClientConfiguration clientConfig = LettuceClientConfiguration.builder()
+                .commandTimeout(Duration.ofSeconds(3))
+                .build();
+        return new LettuceConnectionFactory(redisConfig, clientConfig);
     }
 
     /**
