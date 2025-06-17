@@ -32,11 +32,13 @@ public class VoteDetail {
 
     @Builder
     public VoteDetail(
+            Long id,
             String voteDetailUuid,
             String voteUuid,
             String memberUuid,
             VoteChoice voteChoice
     ) {
+        this.id = id;
         this.voteDetailUuid = voteDetailUuid;
         this.voteUuid = voteUuid;
         this.memberUuid = memberUuid;
