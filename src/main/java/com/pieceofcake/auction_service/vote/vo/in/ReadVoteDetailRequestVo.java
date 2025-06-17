@@ -8,9 +8,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ReadVoteDetailRequestVo {
     private String voteUuid;
+    private String memberUuid;
 
     @Builder
-    public ReadVoteDetailRequestVo(String voteUuid) {
+    public ReadVoteDetailRequestVo(String voteUuid, String memberUuid) {
         this.voteUuid = voteUuid;
+        this.memberUuid = memberUuid;
     }
 }

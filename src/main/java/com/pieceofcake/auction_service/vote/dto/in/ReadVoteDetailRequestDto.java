@@ -18,11 +18,10 @@ public class ReadVoteDetailRequestDto {
     }
 
     public static ReadVoteDetailRequestDto from(
-            ReadVoteDetailRequestVo readVoteDetailRequestVo,
-            String memberUuid
+            ReadVoteDetailRequestVo readVoteDetailRequestVo
     ) {
         return ReadVoteDetailRequestDto.builder()
-                .memberUuid(memberUuid)
+                .memberUuid(readVoteDetailRequestVo.getMemberUuid())
                 .voteUuid(readVoteDetailRequestVo.getVoteUuid())
                 .build();
     }
