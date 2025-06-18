@@ -67,5 +67,6 @@ public class Auction {
         this.highestBidMemberUuid = highestBidMemberUuid;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.auctionStatus = auctionStatus;
     }
 }

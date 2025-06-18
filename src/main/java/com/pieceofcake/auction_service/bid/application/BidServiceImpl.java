@@ -2,6 +2,9 @@ package com.pieceofcake.auction_service.bid.application;
 
 import com.pieceofcake.auction_service.auction.application.AuctionService;
 import com.pieceofcake.auction_service.auction.dto.in.UpdateAuctionDto;
+import com.pieceofcake.auction_service.auction.entity.Auction;
+import com.pieceofcake.auction_service.auction.entity.enums.AuctionStatus;
+import com.pieceofcake.auction_service.auction.infrastructure.AuctionRepository;
 import com.pieceofcake.auction_service.bid.dto.in.*;
 import com.pieceofcake.auction_service.bid.dto.out.CreateBidResponseDto;
 import com.pieceofcake.auction_service.bid.dto.out.ReadMyAuctionsResponseDto;
@@ -18,6 +21,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +34,7 @@ public class BidServiceImpl implements BidService{
     private final BidRepository bidRepository;
     private final AuctionService auctionService;
     private final StringRedisTemplate redisTemplate;
+    private final AuctionRepository auctionRepository;
 
     @Override
     @Transactional
@@ -38,7 +43,20 @@ public class BidServiceImpl implements BidService{
         String auctionUuid = bid.getAuctionUuid();
         Long currentTimestamp = System.currentTimeMillis();
 
-        // 1. redis 최고가와 비교
+        // 0. auction 존재하는지 확인
+        Auction auction = auctionRepository.findByAuctionUuid(createBidRequestDto.getAuctionUuid())
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.AUCTION_NOT_FOUND));
+
+        // 1. 경매 상태가 진행 중인지 확인
+        LocalDateTime now = LocalDateTime.now();
+        if (auction.getAuctionStatus() != AuctionStatus.ONGOING || now.isAfter(auction.getEndDate())) {
+            return CreateBidResponseDto.builder()
+                    .success(false)
+                    .message("경매 마감")
+                    .build();
+        }
+
+        // 2. redis로 최고가인지 비교
         String redisHighestBidKey = "auction:highestBid:" + auctionUuid;
         Map<Object, Object> redisHighestBidMap = redisTemplate.opsForHash().entries(redisHighestBidKey);
         Long highestBidPrice = redisHighestBidMap.get("bidPrice") != null
@@ -48,9 +66,7 @@ public class BidServiceImpl implements BidService{
                 ? Long.parseLong((String) redisHighestBidMap.get("timestamp"))
                 : 0L;
 
-        // 2. 최고가가 아니면, bid SQL에 저장, 유저에게 입찰 실패 로직 전달
-        //    지금은 대응되는 auctionUuid 없어도 일단 bid SQL에 저장.
-        //    무결성 깨질 수 있나?
+        // 2-1. 최고가가 아니면, bid SQL에 저장, 유저에게 입찰 실패 로직 전달
         if (bid.getBidPrice() <= highestBidPrice) {
             bidRepository.save(bid);
             return CreateBidResponseDto.builder()

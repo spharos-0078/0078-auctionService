@@ -33,6 +33,8 @@ public enum BaseResponseStatus {
 
     // 3100: auction service error
     AUCTION_NOT_FOUND(HttpStatus.NOT_FOUND, false, 3100, "경매를 찾을 수 없습니다."),
+    AUCTION_NOT_ONGOING(HttpStatus.BAD_REQUEST, false, 3101, "진행 중인 경매가 아닙니다."),
+
 
     // 3200: vote service error
     ALREADY_VOTED(HttpStatus.BAD_REQUEST, false, 3200, "이미 투표한 경매입니다."),
