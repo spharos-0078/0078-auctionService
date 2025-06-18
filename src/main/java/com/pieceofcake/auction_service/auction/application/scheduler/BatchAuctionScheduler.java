@@ -1,15 +1,13 @@
-package com.pieceofcake.auction_service.auction.application.batch;
+package com.pieceofcake.auction_service.auction.application.scheduler;
 
 import com.pieceofcake.auction_service.auction.application.AuctionService;
 import com.pieceofcake.auction_service.auction.dto.in.UpdateAuctionDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 

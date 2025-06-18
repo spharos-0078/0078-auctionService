@@ -20,6 +20,8 @@ import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -44,6 +46,26 @@ public class AuctionServiceImpl implements AuctionService{
     public void createAuction(CreateAuctionRequestDto createAuctionRequestDto) {
         Auction auction = createAuctionRequestDto.toEntity();
         auctionRepository.save(auction);
+    }
+
+    @Override
+    public void scheduleAuctionClose(Auction auction) {
+        if (auction.getEndDate().isBefore(java.time.LocalDateTime.now())) {
+            log.warn("경매 종료 시간이 현재보다 이전입니다: {}", auction.getAuctionUuid());
+            return;
+        }
+
+        taskScheduler.schedule(
+                () -> {
+                    try {
+                        closeAuction(auction.getAuctionUuid());
+                        log.info("자동 종료된 경매: {}", auction.getAuctionUuid());
+                    } catch (Exception e) {
+                        log.error("경매 자동 종료 실패: {}", auction.getAuctionUuid(), e);
+                    }
+                },
+                java.util.Date.from(auction.getEndDate().atZone(java.time.ZoneId.systemDefault()).toInstant())
+        );
     }
 
     @Override
@@ -78,6 +100,13 @@ public class AuctionServiceImpl implements AuctionService{
         // 경매 상태가 ONGOING이 아닐 경우 에러
         if (auction.getAuctionStatus() != AuctionStatus.ONGOING) {
             throw new BaseException(BaseResponseStatus.AUCTION_NOT_ONGOING);
+        }
+
+        // 경매 종료 시간이 현재 시간보다 이전일 경우 에러
+        if (LocalDateTime.now().isBefore(auction.getEndDate())) {
+            log.warn("스케줄러가 너무 빨리 실행됨. 다시 예약: {}", auctionUuid);
+            scheduleAuctionClose(auction);
+            return;
         }
 
         // 1. bid 테이블에서 최고가 입찰 조회
