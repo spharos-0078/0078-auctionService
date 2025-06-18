@@ -39,5 +39,4 @@ public class SwaggerConfig {
                 .description("auction-service API 테스트를 위한 Swagger UI")
                 .version("1.0.0");
     }
-
 }
