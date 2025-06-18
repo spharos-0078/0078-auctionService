@@ -9,7 +9,8 @@ import lombok.RequiredArgsConstructor;
 public enum AuctionStatus {
     ONGOING("진행중"),
     CLOSED("종료됨"),
-    CANCELLED("취소됨");
+    CANCELLED("취소됨"),
+    NO_BID("입찰 없음");
 
     @JsonValue
     private final String label;

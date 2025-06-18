@@ -8,6 +8,8 @@ import com.pieceofcake.auction_service.auction.dto.out.UpdateAuctionPriceSseDto;
 import com.pieceofcake.auction_service.auction.entity.Auction;
 import com.pieceofcake.auction_service.auction.entity.enums.AuctionStatus;
 import com.pieceofcake.auction_service.auction.infrastructure.AuctionRepository;
+import com.pieceofcake.auction_service.bid.entity.Bid;
+import com.pieceofcake.auction_service.bid.infrastructure.BidRepository;
 import com.pieceofcake.auction_service.common.entity.BaseResponseStatus;
 import com.pieceofcake.auction_service.common.exception.BaseException;
 import jakarta.transaction.Transactional;
@@ -26,6 +28,7 @@ public class AuctionServiceImpl implements AuctionService{
     private final AuctionRepository auctionRepository;
     private final RedisTemplate<String, Object> redisTemplate;
     private final ChannelTopic auctionPriceTopic;
+    private final BidRepository bidRepository;
     private final TaskScheduler taskScheduler;
 
     @Override
@@ -72,20 +75,27 @@ public class AuctionServiceImpl implements AuctionService{
         Auction auction = auctionRepository.findByAuctionUuid(auctionUuid)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.AUCTION_NOT_FOUND));
 
-        if (auction.getAuctionStatus() != AuctionStatus.ONGOING) return;
+        // 경매 상태가 ONGOING이 아닐 경우 에러
+        if (auction.getAuctionStatus() != AuctionStatus.ONGOING) {
+            throw new BaseException(BaseResponseStatus.AUCTION_NOT_ONGOING);
+        }
 
-        // 종료 로직 (낙찰자 결정, 상태 변경 등)
+        // 1. bid 테이블에서 최고가 입찰 조회
+        Bid highestBid = bidRepository.findFirstByAuctionUuidOrderByBidPriceDesc(auctionUuid)
+                .orElse(null);
+
+        // 2. 종료 로직 (낙찰자 결정, 상태 변경 등)
         Auction newAuction = Auction.builder()
                 .id(auction.getId())
                 .auctionUuid(auction.getAuctionUuid())
                 .productUuid(auction.getProductUuid())
                 .startingPrice(auction.getStartingPrice())
-                .highestBidUuid(auction.getHighestBidUuid())
-                .highestBidPrice(auction.getHighestBidPrice())
-                .highestBidMemberUuid(auction.getHighestBidMemberUuid())
+                .highestBidUuid(highestBid != null ? highestBid.getBidUuid() : null)
+                .highestBidPrice(highestBid != null ? highestBid.getBidPrice() : null)
+                .highestBidMemberUuid(highestBid != null ? highestBid.getMemberUuid() : null)
                 .startDate(auction.getStartDate())
                 .endDate(auction.getEndDate())
-                .auctionStatus(AuctionStatus.CLOSED)
+                .auctionStatus((highestBid != null) ? AuctionStatus.CLOSED : AuctionStatus.NO_BID)
                 .build();
 
         auctionRepository.save(newAuction);

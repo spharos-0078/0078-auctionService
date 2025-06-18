@@ -47,10 +47,6 @@ public class BatchAuctionScheduler {
                     .bidPrice(bidPrice)
                     .memberUuid(bidMemberUuid)
                     .build());
-
-            // 처리 완료된 flag 삭제. 할 필요 없을 듯?
-//            redisTemplate.delete(batchKey);
-
         }
     }
 }
