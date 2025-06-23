@@ -8,11 +8,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MemberPieceResponseDto {
     private String memberUuid;
-    private int quantity;
+    private int pieceQuantity;
 
     @Builder
-    public MemberPieceResponseDto(String memberUuid, int quantity) {
+    public MemberPieceResponseDto(String memberUuid, int pieceQuantity) {
         this.memberUuid = memberUuid;
-        this.quantity = quantity;
+        this.pieceQuantity = pieceQuantity;
     }
 }

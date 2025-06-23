@@ -15,20 +15,17 @@ public class CreateVoteRequestVo {
     private Long startingPrice;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private VoteStatus status;
 
     @Builder
     public CreateVoteRequestVo(
             String productUuid,
             Long startingPrice,
             LocalDateTime startDate,
-            LocalDateTime endDate,
-            VoteStatus status
+            LocalDateTime endDate
     ) {
         this.productUuid = productUuid;
         this.startingPrice = startingPrice;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.status = status;
     }
 }

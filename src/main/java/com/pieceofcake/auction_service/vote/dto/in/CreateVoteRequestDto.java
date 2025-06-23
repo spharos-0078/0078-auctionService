@@ -17,20 +17,18 @@ public class CreateVoteRequestDto {
     private Long startingPrice;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private VoteStatus status;
 
     @Builder
     public CreateVoteRequestDto(
             String productUuid,
             Long startingPrice,
             LocalDateTime startDate,
-            LocalDateTime endDate,
-            VoteStatus status) {
+            LocalDateTime endDate
+    ) {
         this.productUuid = productUuid;
         this.startingPrice = startingPrice;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.status = status;
     }
 
     public static CreateVoteRequestDto from(CreateVoteRequestVo createVoteRequestVo) {
@@ -39,7 +37,6 @@ public class CreateVoteRequestDto {
                 .startingPrice(createVoteRequestVo.getStartingPrice())
                 .startDate(createVoteRequestVo.getStartDate())
                 .endDate(createVoteRequestVo.getEndDate())
-                .status(createVoteRequestVo.getStatus())
                 .build();
     }
 
@@ -50,7 +47,7 @@ public class CreateVoteRequestDto {
                 .startingPrice(this.startingPrice)
                 .startDate(this.startDate)
                 .endDate(this.endDate)
-                .status(this.status)
+                .status(VoteStatus.OPEN)
                 .build();
     }
 
