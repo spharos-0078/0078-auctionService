@@ -14,7 +14,7 @@ import java.util.List;
 
 @FeignClient(
         name = "piece-service",
-        url = "${piece-service.url}")
+        url = "${payment-service.url}")
 public interface PieceFeignClient {
 
     @GetMapping("/api/v1/piece/owned/{productUuid}/list")
