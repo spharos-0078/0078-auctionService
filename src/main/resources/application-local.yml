@@ -5,11 +5,11 @@ spring:
     username: root
     password: 1234
 
-  redis:
-    host: localhost
-    port: 6379
-    username: redis123
-    password: 1234
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 1234
 
   kafka:
     bootstrap-servers: localhost:10000,localhost:10001,localhost:10002

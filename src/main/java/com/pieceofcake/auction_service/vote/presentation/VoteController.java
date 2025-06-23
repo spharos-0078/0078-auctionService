@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/votes")
+@RequestMapping("/api/v1/vote")
 @RequiredArgsConstructor
 public class VoteController {
 
@@ -33,7 +33,7 @@ public class VoteController {
         return new BaseResponseEntity<>(BaseResponseStatus.SUCCESS);
     }
 
-    @GetMapping
+    @GetMapping("")
     public BaseResponseEntity<ReadVoteResponseVo> readVote(
             @RequestParam String productUuid
     ) {
