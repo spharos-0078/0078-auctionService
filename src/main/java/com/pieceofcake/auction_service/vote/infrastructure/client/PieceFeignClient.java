@@ -1,5 +1,6 @@
 package com.pieceofcake.auction_service.vote.infrastructure.client;
 
+import com.pieceofcake.auction_service.common.config.FeignConfig;
 import com.pieceofcake.auction_service.vote.infrastructure.client.dto.in.MemberPieceRequestDto;
 import com.pieceofcake.auction_service.vote.infrastructure.client.dto.out.MemberPieceResponseDto;
 import com.pieceofcake.auction_service.vote.infrastructure.client.dto.out.MemberPieceResponseWrapper;
@@ -14,7 +15,8 @@ import java.util.List;
 
 @FeignClient(
         name = "piece-service",
-        url = "${payment-service.url}")
+        url = "${piece-service.url}",
+        configuration = FeignConfig.class)
 public interface PieceFeignClient {
 
     @GetMapping("/api/v1/piece/owned/{productUuid}/list")

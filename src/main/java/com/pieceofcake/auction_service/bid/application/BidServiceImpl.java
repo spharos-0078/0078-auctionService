@@ -83,9 +83,9 @@ public class BidServiceImpl implements BidService{
 
         // 2-2. 최고가면, feign client로 예치금 여부 파악
         ReadRemainingMoneyResponseWrapper response = bidFeignClient.getRemainingMoney();
-        ReadRemainingMoneyResponseDto remainingMoney = response.getResult();
+        ReadRemainingMoneyResponseDto remainingMoneyDto = response.getResult();
 
-        if(bid.getBidPrice() > remainingMoney.getRemainingMoney()) {
+        if(bid.getBidPrice() > remainingMoneyDto.getAmount()) {
             // 예치금이 부족한 경우
             return CreateBidResponseDto.builder()
                     .success(false)

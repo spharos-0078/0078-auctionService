@@ -14,6 +14,8 @@ import java.util.List;
 public interface AuctionRepository extends JpaRepository<Auction, Long> {
     Optional<Auction> findByAuctionUuid(String auctionUuid);
 
+    Boolean existsByProductUuid(String productUuid);
+
     @Modifying
     @Query("UPDATE Auction a SET a.highestBidUuid = :highestBidUuid, a.highestBidPrice = :highestBidPrice, a.highestBidMemberUuid = :highestBidMemberUuid WHERE a.auctionUuid = :auctionUuid")
     void updateHighestBidInfo(@Param("auctionUuid") String auctionUuid,

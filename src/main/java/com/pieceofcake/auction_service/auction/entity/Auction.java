@@ -42,6 +42,7 @@ public class Auction {
     @Column(name = "end_Date", nullable = false)
     private LocalDateTime endDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "auction_status")
     private AuctionStatus auctionStatus;
 
