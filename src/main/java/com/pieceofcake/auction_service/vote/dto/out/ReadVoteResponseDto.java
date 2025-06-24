@@ -1,6 +1,7 @@
 package com.pieceofcake.auction_service.vote.dto.out;
 
 import com.pieceofcake.auction_service.vote.entity.Vote;
+import com.pieceofcake.auction_service.vote.entity.enums.VoteStatus;
 import com.pieceofcake.auction_service.vote.vo.out.ReadVoteResponseVo;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,7 +15,7 @@ public class ReadVoteResponseDto {
     private Long startingPrice;
     private String startDate;
     private String endDate;
-    private String status;
+    private VoteStatus status;
     private Long agreeCount;
     private Long disagreeCount;
     private Long noVoteCount;
@@ -27,7 +28,7 @@ public class ReadVoteResponseDto {
             Long startingPrice,
             String startDate,
             String endDate,
-            String status,
+            VoteStatus status,
             Long agreeCount,
             Long disagreeCount,
             Long noVoteCount,
@@ -52,7 +53,7 @@ public class ReadVoteResponseDto {
                 .startingPrice(vote.getStartingPrice())
                 .startDate(vote.getStartDate().toString())
                 .endDate(vote.getEndDate().toString())
-                .status(vote.getStatus().name())
+                .status(vote.getStatus())
                 .agreeCount(vote.getAgreeCount())
                 .disagreeCount(vote.getDisagreeCount())
                 .noVoteCount(vote.getNoVoteCount())
