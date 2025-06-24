@@ -15,7 +15,7 @@ public class ReadVoteResponseVo {
     private Long startingPrice;
     private String startDate;
     private String endDate;
-    private String status;
+    private VoteStatus status;
     private Long agreeCount;
     private Long disagreeCount;
     private Long noVoteCount;
@@ -23,7 +23,7 @@ public class ReadVoteResponseVo {
 
     @Builder
     public ReadVoteResponseVo(String voteUuid, String productUuid, Long startingPrice,
-                              String startDate, String endDate, String status,
+                              String startDate, String endDate, VoteStatus status,
                               Long agreeCount, Long disagreeCount, Long noVoteCount, Long totalCount) {
         this.voteUuid = voteUuid;
         this.productUuid = productUuid;
