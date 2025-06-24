@@ -8,6 +8,10 @@ import com.pieceofcake.auction_service.auction.dto.out.UpdateAuctionPriceSseDto;
 import com.pieceofcake.auction_service.auction.entity.Auction;
 import com.pieceofcake.auction_service.auction.entity.enums.AuctionStatus;
 import com.pieceofcake.auction_service.auction.infrastructure.AuctionRepository;
+import com.pieceofcake.auction_service.auction.infrastructure.client.AuctionFeignClient;
+import com.pieceofcake.auction_service.auction.infrastructure.client.dto.in.CreateMoneyRequestDto;
+import com.pieceofcake.auction_service.auction.infrastructure.client.dto.in.CreateMoneyWithMemberUuidRequestDto;
+import com.pieceofcake.auction_service.auction.infrastructure.client.dto.in.enums.MoneyHistoryType;
 import com.pieceofcake.auction_service.bid.entity.Bid;
 import com.pieceofcake.auction_service.bid.infrastructure.BidRepository;
 import com.pieceofcake.auction_service.common.entity.BaseResponseStatus;
@@ -32,6 +36,7 @@ public class AuctionServiceImpl implements AuctionService{
     private final ChannelTopic auctionPriceTopic;
     private final BidRepository bidRepository;
     private final TaskScheduler taskScheduler;
+    private final AuctionFeignClient auctionFeignClient;
 
     @Override
     public ReadHighestBidPriceResponseDto readHighestBid(ReadHighestBidPriceRequestDto readHighestBidPriceRequestDto) {
@@ -44,6 +49,9 @@ public class AuctionServiceImpl implements AuctionService{
     @Override
     @Transactional
     public void createAuction(CreateAuctionRequestDto createAuctionRequestDto) {
+        if (auctionRepository.existsByProductUuid(createAuctionRequestDto.getProductUuid())) {
+            throw new BaseException(BaseResponseStatus.AUCTION_ALREADY_EXISTS);
+        }
         Auction auction = createAuctionRequestDto.toEntity();
         auctionRepository.save(auction);
     }
@@ -64,7 +72,7 @@ public class AuctionServiceImpl implements AuctionService{
                         log.error("경매 자동 종료 실패: {}", auction.getAuctionUuid(), e);
                     }
                 },
-                java.util.Date.from(auction.getEndDate().atZone(java.time.ZoneId.systemDefault()).toInstant())
+                auction.getEndDate().atZone(java.time.ZoneId.systemDefault()).toInstant()
         );
     }
 
@@ -74,12 +82,41 @@ public class AuctionServiceImpl implements AuctionService{
         Auction auction = auctionRepository.findByAuctionUuid(updateAuctionDto.getAuctionUuid())
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.AUCTION_NOT_FOUND));
 
+        String oldHighestMemberUuid = auction.getHighestBidMemberUuid() != null ?
+                auction.getHighestBidMemberUuid() : "";
+        Long oldHighestBidPrice = auction.getHighestBidPrice() != null ?
+                auction.getHighestBidPrice() : 0L;
+        log.info("updateAuction: {}, 최고 입찰자: {}, 최고 입찰가: {}", auction.getAuctionUuid(), oldHighestMemberUuid, oldHighestBidPrice);
+
         if (auction.getAuctionStatus() != AuctionStatus.ONGOING) {
             throw new BaseException(BaseResponseStatus.AUCTION_NOT_ONGOING);
         }
 
         // 엔티티 업데이트
         auctionRepository.save(updateAuctionDto.updateEntity(auction));
+
+//        // 기존 최고가가 있으면, 해당 유저의 보증금 없애기
+        if (auction.getHighestBidUuid() != null) {
+            auctionFeignClient.createMoneyWithMemberUuid(
+                    CreateMoneyWithMemberUuidRequestDto.builder()
+                            .memberUuid(oldHighestMemberUuid)
+                            .amount(oldHighestBidPrice)
+                            .isPositive(true)
+                            .historyType(MoneyHistoryType.FREEZE)
+                            .moneyHistoryDetail(auction.getAuctionUuid())
+                            .build()
+            );
+        }
+
+        // 현재 입찰자의 보증금 추가
+        auctionFeignClient.createMoney(
+                CreateMoneyRequestDto.builder()
+                        .amount(updateAuctionDto.getBidPrice())
+                        .isPositive(false)
+                        .historyType(MoneyHistoryType.FREEZE)
+                        .moneyHistoryDetail(auction.getAuctionUuid())
+                        .build()
+        );
 
         // SSE 이벤트 발행
         UpdateAuctionPriceSseDto updateAuctionPriceSseDto = UpdateAuctionPriceSseDto.builder()
@@ -97,6 +134,11 @@ public class AuctionServiceImpl implements AuctionService{
         Auction auction = auctionRepository.findByAuctionUuid(auctionUuid)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.AUCTION_NOT_FOUND));
 
+        String oldHighestMemberUuid = auction.getHighestBidMemberUuid() != null ?
+                auction.getHighestBidMemberUuid() : "";
+        Long oldHighestBidPrice = auction.getHighestBidPrice() != null ?
+                auction.getHighestBidPrice() : 0L;
+
         // 경매 상태가 ONGOING이 아닐 경우 에러
         if (auction.getAuctionStatus() != AuctionStatus.ONGOING) {
             throw new BaseException(BaseResponseStatus.AUCTION_NOT_ONGOING);
@@ -113,6 +155,8 @@ public class AuctionServiceImpl implements AuctionService{
         Bid highestBid = bidRepository.findFirstByAuctionUuidOrderByBidPriceDesc(auctionUuid)
                 .orElse(null);
 
+        log.info("경매 종료: {}, 최고 입찰: {}", auctionUuid, highestBid.getBidUuid());
+
         // 2. 종료 로직 (낙찰자 결정, 상태 변경 등)
         Auction newAuction = Auction.builder()
                 .id(auction.getId())
@@ -126,6 +170,45 @@ public class AuctionServiceImpl implements AuctionService{
                 .endDate(auction.getEndDate())
                 .auctionStatus((highestBid != null) ? AuctionStatus.CLOSED : AuctionStatus.NO_BID)
                 .build();
+
+        if (auction.getHighestBidUuid().equals(newAuction.getHighestBidUuid())){
+            // 최고입찰자와 bid 기준 입찰자가 다르면
+
+            // auction의 입찰자는 환불
+            auctionFeignClient.createMoneyWithMemberUuid(
+                    CreateMoneyWithMemberUuidRequestDto.builder()
+                            .memberUuid(oldHighestMemberUuid)
+                            .amount(oldHighestBidPrice)
+                            .isPositive(true)
+                            .historyType(MoneyHistoryType.FREEZE)
+                            .moneyHistoryDetail(auction.getAuctionUuid())
+                            .build()
+            );
+
+            // bid의 입찰자에게 구매 진행
+            auctionFeignClient.createMoneyWithMemberUuid(
+                    CreateMoneyWithMemberUuidRequestDto.builder()
+                            .memberUuid(highestBid.getMemberUuid())
+                            .isPositive(false)
+                            .amount(highestBid.getBidPrice())
+                            .historyType(MoneyHistoryType.PRODUCT_BUY)
+                            .moneyHistoryDetail(auction.getAuctionUuid())
+                            .build()
+            );
+        } else {
+            // 최고입찰자가 bid와 같으면
+            // 구매 진행
+            auctionFeignClient.createMoneyWithMemberUuid(
+                    CreateMoneyWithMemberUuidRequestDto.builder()
+                            .memberUuid(auction.getHighestBidMemberUuid())
+                            .amount(auction.getHighestBidPrice())
+                            .isPositive(false)
+                            .historyType(MoneyHistoryType.PRODUCT_BUY)
+                            .moneyHistoryDetail(auction.getAuctionUuid())
+                            .build()
+            );
+
+        }
 
         auctionRepository.save(newAuction);
     }

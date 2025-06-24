@@ -44,7 +44,6 @@ public class VoteCloseProcessor implements ItemProcessor<Vote, Vote> {
         // 외부 피스 서비스에서 유저가 가진 조각 수 조회
         MemberPieceResponseWrapper response = pieceFeignClient.getMemberPieceQuantities(productUuid);
         List<MemberPieceResponseDto> pieceInfos = response.getResult();
-        log.info("@@@@@@@@@@@@@: {}", productUuid);
 
         // 투표 결과 집계용 변수
         long agreeCount = 0, disagreeCount = 0, noVoteCount = 0, total = 0;

@@ -13,5 +13,4 @@ public class CreateAuctionRequestVo {
     private String highestBidMemberUuid;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private AuctionStatus auctionStatus;
 }

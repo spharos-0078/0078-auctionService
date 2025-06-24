@@ -12,8 +12,13 @@ import com.pieceofcake.auction_service.bid.dto.out.ReadAllBidsByAuctionResponseD
 import com.pieceofcake.auction_service.bid.dto.out.ReadBidResponseDto;
 import com.pieceofcake.auction_service.bid.entity.Bid;
 import com.pieceofcake.auction_service.bid.infrastructure.BidRepository;
+import com.pieceofcake.auction_service.bid.infrastructure.client.BidFeignClient;
+import com.pieceofcake.auction_service.bid.infrastructure.client.dto.out.ReadRemainingMoneyResponseDto;
+import com.pieceofcake.auction_service.bid.infrastructure.client.dto.out.ReadRemainingMoneyResponseWrapper;
 import com.pieceofcake.auction_service.common.entity.BaseResponseStatus;
 import com.pieceofcake.auction_service.common.exception.BaseException;
+import com.pieceofcake.auction_service.vote.infrastructure.client.dto.out.MemberPieceResponseDto;
+import com.pieceofcake.auction_service.vote.infrastructure.client.dto.out.MemberPieceResponseWrapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +40,7 @@ public class BidServiceImpl implements BidService{
     private final AuctionService auctionService;
     private final StringRedisTemplate redisTemplate;
     private final AuctionRepository auctionRepository;
+    private final BidFeignClient bidFeignClient;
 
     @Override
     @Transactional
@@ -72,6 +78,18 @@ public class BidServiceImpl implements BidService{
             return CreateBidResponseDto.builder()
                     .success(false)
                     .message("입찰 실패")
+                    .build();
+        }
+
+        // 2-2. 최고가면, feign client로 예치금 여부 파악
+        ReadRemainingMoneyResponseWrapper response = bidFeignClient.getRemainingMoney();
+        ReadRemainingMoneyResponseDto remainingMoneyDto = response.getResult();
+
+        if(bid.getBidPrice() > remainingMoneyDto.getAmount()) {
+            // 예치금이 부족한 경우
+            return CreateBidResponseDto.builder()
+                    .success(false)
+                    .message("예치금 부족")
                     .build();
         }
 
