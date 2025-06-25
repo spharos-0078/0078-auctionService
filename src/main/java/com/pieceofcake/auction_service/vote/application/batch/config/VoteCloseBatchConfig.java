@@ -1,5 +1,6 @@
 package com.pieceofcake.auction_service.vote.application.batch.config;
 
+import com.pieceofcake.auction_service.kafka.producer.KafkaProducer;
 import com.pieceofcake.auction_service.vote.application.batch.processor.VoteCloseProcessor;
 import com.pieceofcake.auction_service.vote.entity.Vote;
 import com.pieceofcake.auction_service.vote.infrastructure.VoteDetailRepository;
@@ -31,6 +32,7 @@ public class VoteCloseBatchConfig {
     private final VoteRepository voteRepository;
     private final VoteDetailRepository voteDetailRepository;
     private final PieceFeignClient pieceFeignClient;
+    private final KafkaProducer kafkaProducer;
 
     /**
      * 배치 잡 정의 - closeVoteJob
@@ -43,6 +45,12 @@ public class VoteCloseBatchConfig {
                 .build();
     }
 
+    @Bean
+    public VoteCloseProcessor voteCloseProcessor() {
+        // 생성자에 voteDetailRepo, feignClient, kafkaProducer 모두 전달하도록 수정
+        return new VoteCloseProcessor(voteDetailRepository, pieceFeignClient, kafkaProducer);
+    }
+
     /**
      * Step 정의 - closeVoteStep
      * 종료된 투표를 읽고, 투표 상태를 결정하여 DB에 저장
@@ -50,10 +58,11 @@ public class VoteCloseBatchConfig {
     @Bean
     public Step closeVoteStep() {
         return new StepBuilder("closeVoteStep", jobRepository)
-                .<Vote, Vote>chunk(10, transactionManager) // 한 번에 10개씩 처리
-                .reader(expiredVoteReader())                 // Step의 Reader
-                .processor(new VoteCloseProcessor(voteDetailRepository, pieceFeignClient)) // Step의 Processor
-                .writer(voteRepository::saveAll)             // Step의 Writer
+                .<Vote, Vote>chunk(10, transactionManager)     // 한 번에 10개씩 처리
+                .reader(expiredVoteReader())                            // Reader 등록 그대로
+                .processor(voteCloseProcessor())                        // Processor 에 빈 사용
+                .writer(voteRepository::saveAll)                        // Writer 등록 그대로
+                .listener(voteCloseProcessor())                         // afterWrite() 호출을 위해 listener 등록
                 .build();
     }
 
