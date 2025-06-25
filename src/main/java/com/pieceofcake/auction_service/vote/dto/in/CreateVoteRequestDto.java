@@ -14,6 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class CreateVoteRequestDto {
     private String productUuid;
+    private String startingMemberUuid;
     private Long startingPrice;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
@@ -21,11 +22,13 @@ public class CreateVoteRequestDto {
     @Builder
     public CreateVoteRequestDto(
             String productUuid,
+            String startingMemberUuid,
             Long startingPrice,
             LocalDateTime startDate,
             LocalDateTime endDate
     ) {
         this.productUuid = productUuid;
+        this.startingMemberUuid = startingMemberUuid;
         this.startingPrice = startingPrice;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -34,6 +37,7 @@ public class CreateVoteRequestDto {
     public static CreateVoteRequestDto from(CreateVoteRequestVo createVoteRequestVo) {
         return CreateVoteRequestDto.builder()
                 .productUuid(createVoteRequestVo.getProductUuid())
+                .startingMemberUuid(createVoteRequestVo.getStartingMemberUuid())
                 .startingPrice(createVoteRequestVo.getStartingPrice())
                 .startDate(createVoteRequestVo.getStartDate())
                 .endDate(createVoteRequestVo.getEndDate())
@@ -44,6 +48,7 @@ public class CreateVoteRequestDto {
         return Vote.builder()
                 .voteUuid(UUID.randomUUID().toString())
                 .productUuid(this.productUuid)
+                .startingMemberUuid(this.startingMemberUuid)
                 .startingPrice(this.startingPrice)
                 .startDate(this.startDate)
                 .endDate(this.endDate)
