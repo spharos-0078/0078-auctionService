@@ -12,9 +12,10 @@ import java.time.LocalDateTime;
 public class ReadVoteResponseVo {
     private String voteUuid;
     private String productUuid;
+    private String startingMemberUuid;
     private Long startingPrice;
-    private String startDate;
-    private String endDate;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
     private VoteStatus status;
     private Long agreeCount;
     private Long disagreeCount;
@@ -22,18 +23,29 @@ public class ReadVoteResponseVo {
     private Long totalCount;
 
     @Builder
-    public ReadVoteResponseVo(String voteUuid, String productUuid, Long startingPrice,
-                              String startDate, String endDate, VoteStatus status,
-                              Long agreeCount, Long disagreeCount, Long noVoteCount, Long totalCount) {
+    public ReadVoteResponseVo(
+            String voteUuid,
+            String productUuid,
+            String startingMemberUuid,
+            Long startingPrice,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            VoteStatus status,
+            Long agreeCount,
+            Long disagreeCount,
+            Long noVoteCount,
+            Long totalCount
+    ) {
         this.voteUuid = voteUuid;
         this.productUuid = productUuid;
+        this.startingMemberUuid = startingMemberUuid;
         this.startingPrice = startingPrice;
         this.startDate = startDate;
         this.endDate = endDate;
         this.status = status;
-        this.agreeCount = agreeCount != null ? agreeCount : 0L;
-        this.disagreeCount = disagreeCount != null ? disagreeCount : 0L;
-        this.noVoteCount = noVoteCount != null ? noVoteCount : 0L;
-        this.totalCount = totalCount != null ? totalCount : 0L;
+        this.agreeCount = agreeCount;
+        this.disagreeCount = disagreeCount;
+        this.noVoteCount = noVoteCount;
+        this.totalCount = totalCount;
     }
 }
