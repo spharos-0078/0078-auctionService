@@ -9,11 +9,11 @@ import org.springframework.stereotype.Service;
 public class KafkaProducer {
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public void sendVoteCloseEvent(String voteUuid) {
-        kafkaTemplate.send("vote-close", voteUuid); // 단순히 voteUuid만 전송
+    public void sendVoteCloseEvent(String productUuid) {
+        kafkaTemplate.send("vote-close", productUuid); // 단순히 voteUuid만 전송
     }
 
-    public void sendAuctionCloseEvent(String auctionUuid) {
-        kafkaTemplate.send("auction-close", auctionUuid);
+    public void sendAuctionCloseEvent(String productUuid) {
+        kafkaTemplate.send("auction-close", productUuid);
     }
 }

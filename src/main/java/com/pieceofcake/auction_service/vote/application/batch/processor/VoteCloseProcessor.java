@@ -90,7 +90,7 @@ public class VoteCloseProcessor
     @Override
     public void afterWrite(Chunk<? extends Vote> items) {
         items.forEach(vote ->
-                kafkaProducer.sendVoteCloseEvent(vote.getVoteUuid())
+                kafkaProducer.sendVoteCloseEvent(vote.getProductUuid())
         );
     }
 

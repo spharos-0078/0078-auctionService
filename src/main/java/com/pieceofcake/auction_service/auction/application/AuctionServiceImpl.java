@@ -226,8 +226,8 @@ public class AuctionServiceImpl implements AuctionService{
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                log.info("경매 종료 이벤트 발행: @@@@@@@@{}", auctionUuid);
-                kafkaProducer.sendAuctionCloseEvent(auctionUuid);
+                log.info("경매 종료 이벤트 발행: @@@@@@@@{}", auction.getProductUuid());
+                kafkaProducer.sendAuctionCloseEvent(auction.getProductUuid());
             }
         });
     }
