@@ -7,14 +7,17 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Getter
 @NoArgsConstructor
 public class ReadVoteResponseDto {
     private String voteUuid;
     private String productUuid;
+    private String startingMemberUuid;
     private Long startingPrice;
-    private String startDate;
-    private String endDate;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
     private VoteStatus status;
     private Long agreeCount;
     private Long disagreeCount;
@@ -25,9 +28,10 @@ public class ReadVoteResponseDto {
     public ReadVoteResponseDto(
             String voteUuid,
             String productUuid,
+            String startingMemberUuid,
             Long startingPrice,
-            String startDate,
-            String endDate,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
             VoteStatus status,
             Long agreeCount,
             Long disagreeCount,
@@ -36,6 +40,7 @@ public class ReadVoteResponseDto {
     ) {
         this.voteUuid = voteUuid;
         this.productUuid = productUuid;
+        this.startingMemberUuid = startingMemberUuid;
         this.startingPrice = startingPrice;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -50,9 +55,10 @@ public class ReadVoteResponseDto {
         return ReadVoteResponseDto.builder()
                 .voteUuid(vote.getVoteUuid())
                 .productUuid(vote.getProductUuid())
+                .startingMemberUuid(vote.getStartingMemberUuid())
                 .startingPrice(vote.getStartingPrice())
-                .startDate(vote.getStartDate().toString())
-                .endDate(vote.getEndDate().toString())
+                .startDate(vote.getStartDate())
+                .endDate(vote.getEndDate())
                 .status(vote.getStatus())
                 .agreeCount(vote.getAgreeCount())
                 .disagreeCount(vote.getDisagreeCount())
@@ -65,6 +71,7 @@ public class ReadVoteResponseDto {
         return ReadVoteResponseVo.builder()
                 .voteUuid(this.voteUuid)
                 .productUuid(this.productUuid)
+                .startingMemberUuid(this.startingMemberUuid)
                 .startingPrice(this.startingPrice)
                 .startDate(this.startDate)
                 .endDate(this.endDate)
