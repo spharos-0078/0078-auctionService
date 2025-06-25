@@ -4,9 +4,10 @@ import com.pieceofcake.auction_service.auction.infrastructure.client.dto.in.enum
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
-
+@ToString
 @Getter
 @NoArgsConstructor
 public class CreateMoneyWithMemberUuidRequestDto {

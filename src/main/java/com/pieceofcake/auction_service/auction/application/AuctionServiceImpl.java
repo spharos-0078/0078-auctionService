@@ -16,13 +16,18 @@ import com.pieceofcake.auction_service.bid.entity.Bid;
 import com.pieceofcake.auction_service.bid.infrastructure.BidRepository;
 import com.pieceofcake.auction_service.common.entity.BaseResponseStatus;
 import com.pieceofcake.auction_service.common.exception.BaseException;
+import com.pieceofcake.auction_service.kafka.producer.KafkaProducer;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 
@@ -37,6 +42,9 @@ public class AuctionServiceImpl implements AuctionService{
     private final BidRepository bidRepository;
     private final TaskScheduler taskScheduler;
     private final AuctionFeignClient auctionFeignClient;
+    private final KafkaProducer kafkaProducer;
+    private final ApplicationContext applicationContext;
+
 
     @Override
     public ReadHighestBidPriceResponseDto readHighestBid(ReadHighestBidPriceRequestDto readHighestBidPriceRequestDto) {
@@ -66,7 +74,9 @@ public class AuctionServiceImpl implements AuctionService{
         taskScheduler.schedule(
                 () -> {
                     try {
-                        closeAuction(auction.getAuctionUuid());
+                        AuctionService proxy = applicationContext.getBean(AuctionService.class);
+                        proxy.closeAuction(auction.getAuctionUuid());
+//                        closeAuction(auction.getAuctionUuid());
                         log.info("자동 종료된 경매: {}", auction.getAuctionUuid());
                     } catch (Exception e) {
                         log.error("경매 자동 종료 실패: {}", auction.getAuctionUuid(), e);
@@ -130,6 +140,8 @@ public class AuctionServiceImpl implements AuctionService{
         redisTemplate.convertAndSend(auctionPriceTopic.getTopic(), updateAuctionPriceSseDto);
     }
 
+    @Transactional
+    @Override
     public void closeAuction(String auctionUuid) {
         Auction auction = auctionRepository.findByAuctionUuid(auctionUuid)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.AUCTION_NOT_FOUND));
@@ -197,7 +209,6 @@ public class AuctionServiceImpl implements AuctionService{
             );
         } else {
             // 최고입찰자가 bid와 같으면
-            // 구매 진행
             auctionFeignClient.createMoneyWithMemberUuid(
                     CreateMoneyWithMemberUuidRequestDto.builder()
                             .memberUuid(auction.getHighestBidMemberUuid())
@@ -207,10 +218,18 @@ public class AuctionServiceImpl implements AuctionService{
                             .moneyHistoryDetail(auction.getAuctionUuid())
                             .build()
             );
-
         }
 
         auctionRepository.save(newAuction);
+
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                log.info("경매 종료 이벤트 발행: @@@@@@@@{}", auctionUuid);
+                kafkaProducer.sendAuctionCloseEvent(auctionUuid);
+            }
+        });
     }
 
 }
