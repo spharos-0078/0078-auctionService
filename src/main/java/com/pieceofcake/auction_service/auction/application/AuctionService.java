@@ -11,4 +11,5 @@ public interface AuctionService {
     void createAuction(CreateAuctionRequestDto createAuctionRequestDto);
     void updateAuction(UpdateAuctionDto updateAuctionDto);
     void scheduleAuctionClose(Auction auction);
+    void closeAuction(String auctionUuid);
 }

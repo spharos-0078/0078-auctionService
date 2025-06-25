@@ -1,80 +1,72 @@
 package com.pieceofcake.auction_service.vote.application.batch.processor;
 
+import com.pieceofcake.auction_service.kafka.producer.KafkaProducer;
 import com.pieceofcake.auction_service.vote.entity.Vote;
 import com.pieceofcake.auction_service.vote.entity.VoteDetail;
 import com.pieceofcake.auction_service.vote.entity.enums.VoteChoice;
 import com.pieceofcake.auction_service.vote.entity.enums.VoteStatus;
 import com.pieceofcake.auction_service.vote.infrastructure.VoteDetailRepository;
 import com.pieceofcake.auction_service.vote.infrastructure.client.PieceFeignClient;
-import com.pieceofcake.auction_service.vote.infrastructure.client.dto.in.MemberPieceRequestDto;
 import com.pieceofcake.auction_service.vote.infrastructure.client.dto.out.MemberPieceResponseDto;
 import com.pieceofcake.auction_service.vote.infrastructure.client.dto.out.MemberPieceResponseWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.core.ItemWriteListener;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemProcessor;
 
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
 @Slf4j
 @RequiredArgsConstructor
-public class VoteCloseProcessor implements ItemProcessor<Vote, Vote> {
+public class VoteCloseProcessor
+        implements ItemProcessor<Vote, Vote>, ItemWriteListener<Vote> {
 
-    // 투표 상세 정보 조회용 Repository
     private final VoteDetailRepository voteDetailRepository;
-
-    // 피스 개수 조회를 위한 외부 API Client
     private final PieceFeignClient pieceFeignClient;
+    private final KafkaProducer kafkaProducer;
 
     /**
-     * 하나의 Vote에 대해 처리 수행
+     * 프로세스 단계: 투표 데이터 집계 후 새로운 상태 설정
      */
     @Override
-    public Vote process(Vote vote) throws Exception {
-        String voteUuid = vote.getVoteUuid();
+    public Vote process(Vote vote) {
+        String voteUuid    = vote.getVoteUuid();
         String productUuid = vote.getProductUuid();
 
-        // 해당 투표에 참여한 모든 유저의 찬반 정보 조회
+        // 1) 참여자별 투표 내역 조회
         List<VoteDetail> details = voteDetailRepository.findAllByVoteUuid(voteUuid);
-
-        // memberUuid -> AGREE / DISAGREE / ABSTAIN 등 매핑
         Map<String, VoteChoice> memberVoteMap = details.stream()
                 .collect(Collectors.toMap(VoteDetail::getMemberUuid, VoteDetail::getVoteChoice));
 
-        // 외부 피스 서비스에서 유저가 가진 조각 수 조회
+        // 2) 조각 수 조회
         MemberPieceResponseWrapper response = pieceFeignClient.getMemberPieceQuantities(productUuid);
         List<MemberPieceResponseDto> pieceInfos = response.getResult();
 
-        // 투표 결과 집계용 변수
+        // 3) 가중치 집계
         long agreeCount = 0, disagreeCount = 0, noVoteCount = 0, total = 0;
-
-        // 각 유저의 조각 수를 바탕으로 찬/반/무응답 수 계산
         for (MemberPieceResponseDto info : pieceInfos) {
-            String memberUuid = info.getMemberUuid();
-            log.info("###1Processing member: {}, quantity: {}", memberUuid, info.getPieceQuantity());
-            int quantity = info.getPieceQuantity(); // 해당 유저가 가진 조각 수
-            total += quantity;
-
-            // 찬/반 여부에 따라 카운팅
-            VoteChoice choice = memberVoteMap.get(memberUuid);
-            if (choice == VoteChoice.AGREE) agreeCount += quantity;
-            else if (choice == VoteChoice.DISAGREE) disagreeCount += quantity;
-            else noVoteCount += quantity;
+            int qty = info.getPieceQuantity();
+            total += qty;
+            VoteChoice choice = memberVoteMap.get(info.getMemberUuid());
+            if      (choice == VoteChoice.AGREE)    agreeCount += qty;
+            else if (choice == VoteChoice.DISAGREE) disagreeCount += qty;
+            else                                     noVoteCount  += qty;
         }
 
-        // 비율 계산 (예외 방지를 위해 분모 체크)
+        // 4) 결과 비율 계산 및 상태 결정
         double agreeRate = total > 0 ? (agreeCount * 100.0 / total) : 0.0;
-
-        // 50% 이상 찬성 시 승인
-        VoteStatus newStatus = agreeRate >= 50.0
+        VoteStatus newStatus = (agreeRate >= 50.0)
                 ? VoteStatus.CLOSED_ACCEPTED
                 : VoteStatus.CLOSED_REJECTED;
 
-        // 새 상태를 반영한 Vote 객체 생성
+        // 5) 변경된 상태를 반영한 Vote 반환 (DB 저장은 writer 단계에서)
         return Vote.builder()
                 .id(vote.getId())
-                .voteUuid(vote.getVoteUuid())
-                .productUuid(vote.getProductUuid())
+                .voteUuid(voteUuid)
+                .productUuid(productUuid)
                 .startingPrice(vote.getStartingPrice())
                 .startDate(vote.getStartDate())
                 .endDate(vote.getEndDate())
@@ -84,5 +76,29 @@ public class VoteCloseProcessor implements ItemProcessor<Vote, Vote> {
                 .noVoteCount(noVoteCount)
                 .totalCount(total)
                 .build();
+    }
+
+    /**
+     * 반드시 throws Exception 을 추가하고,
+     * 파라미터 순서도 List<? extends Vote>, Exception 으로 맞춥니다.
+     */
+    @Override
+    public void beforeWrite(Chunk<? extends Vote> items) {
+        // no-op
+    }
+
+    @Override
+    public void afterWrite(Chunk<? extends Vote> items) {
+        items.forEach(vote ->
+                kafkaProducer.sendVoteCloseEvent(vote.getProductUuid())
+        );
+    }
+
+    /**
+     * Spring Batch 5에서 onWriteError의 파라미터 순서는 (Exception, Chunk)입니다.
+     */
+    @Override
+    public void onWriteError(Exception exception, Chunk<? extends Vote> items) {
+        log.error("투표 처리 중 오류 발생, 이벤트 발행 생략: {}", exception.getMessage());
     }
 }
