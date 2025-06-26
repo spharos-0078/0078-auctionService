@@ -64,6 +64,13 @@ public class AuctionServiceImpl implements AuctionService{
         }
         Auction auction = createAuctionRequestDto.toEntity();
         auctionRepository.save(auction);
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                kafkaProducer.sendAuctionStartEvent(auction.getProductUuid());
+            }
+        });
     }
 
     @Override

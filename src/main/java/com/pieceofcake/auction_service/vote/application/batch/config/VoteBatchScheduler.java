@@ -15,7 +15,7 @@ public class VoteBatchScheduler {
     private final JobLauncher jobLauncher;
     private final Job closeVoteJob;
 
-    @Scheduled(cron = "0 * * * * *") // 초 단위로 10초마다 (0,10,20,30,40,50초)
+    @Scheduled(cron = "0 * * * * *") // 매 0초
     public void runVoteCloseJob() {
         try {
             JobParameters params = new JobParametersBuilder()
