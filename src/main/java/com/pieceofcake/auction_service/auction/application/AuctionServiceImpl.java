@@ -30,6 +30,8 @@ import org.springframework.transaction.support.TransactionSynchronizationAdapter
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Service
@@ -107,17 +109,26 @@ public class AuctionServiceImpl implements AuctionService{
 
 //        // 기존 최고가가 있으면, 해당 유저의 보증금 없애기
         if (auction.getHighestBidUuid() != null) {
-            auctionFeignClient.createMoneyWithMemberUuid(
-                    CreateMoneyWithMemberUuidRequestDto.builder()
-                            .memberUuid(oldHighestMemberUuid)
-                            .amount(oldHighestBidPrice)
-                            .isPositive(true)
-                            .historyType(MoneyHistoryType.FREEZE)
-                            .moneyHistoryDetail(auction.getAuctionUuid())
-                            .build()
-            );
+            // 첫 번째 요청을 보내고 완료될 때까지 기다립니다
+            CompletableFuture<Void> refundFuture = CompletableFuture.runAsync(() -> {
+                auctionFeignClient.createMoneyWithMemberUuid(
+                        CreateMoneyWithMemberUuidRequestDto.builder()
+                                .memberUuid(oldHighestMemberUuid)
+                                .amount(oldHighestBidPrice)
+                                .isPositive(true)
+                                .historyType(MoneyHistoryType.FREEZE)
+                                .moneyHistoryDetail(auction.getAuctionUuid())
+                                .build()
+                );
+            });
+            try {
+                // 첫 번째 요청이 완료될 때까지 기다린 후 두 번째 요청을 실행합니다
+                refundFuture.get();
+            } catch (InterruptedException | ExecutionException e) {
+                log.error("이전 입찰자의 보증금 반환 중 오류 발생: {}", e.getMessage());
+                throw new BaseException(BaseResponseStatus.MONEY_SERVICE_ERROR);
+            }
         }
-
         // 현재 입찰자의 보증금 추가
         auctionFeignClient.createMoney(
                 CreateMoneyRequestDto.builder()
@@ -139,6 +150,7 @@ public class AuctionServiceImpl implements AuctionService{
         // Redis를 통해 이벤트 발행
         redisTemplate.convertAndSend(auctionPriceTopic.getTopic(), updateAuctionPriceSseDto);
     }
+
 
     @Transactional
     @Override
