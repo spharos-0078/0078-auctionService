@@ -1,5 +1,8 @@
 package com.pieceofcake.auction_service.vote.application;
 
+import com.pieceofcake.auction_service.auction.infrastructure.client.AuctionFeignClient;
+import com.pieceofcake.auction_service.auction.infrastructure.client.dto.in.CreateMoneyRequestDto;
+import com.pieceofcake.auction_service.auction.infrastructure.client.dto.in.enums.MoneyHistoryType;
 import com.pieceofcake.auction_service.common.entity.BaseResponseStatus;
 import com.pieceofcake.auction_service.common.exception.BaseException;
 import com.pieceofcake.auction_service.kafka.producer.KafkaProducer;
@@ -25,10 +28,21 @@ public class VoteServiceImpl implements VoteService {
 
     private final VoteRepository voteRepository;
     private final KafkaProducer kafkaProducer;
+    private final AuctionFeignClient auctionFeignClient;
     @Override
     @Transactional
     public void createVote(CreateVoteRequestDto createVoteRequestDto) {
         Vote vote = createVoteRequestDto.toEntity();
+
+        // 투표 제시자의 보증금 차감 로직
+        auctionFeignClient.createMoney(
+                CreateMoneyRequestDto.builder()
+                        .amount(createVoteRequestDto.getStartingPrice())
+                        .isPositive(false) // 보증금 차감
+                        .historyType(MoneyHistoryType.FREEZE)
+                        .moneyHistoryDetail("투표 시작을 위한 보증금 차감")
+                        .build()
+        );
 
         voteRepository.save(vote);
         // 투표 시작 이벤트 발행

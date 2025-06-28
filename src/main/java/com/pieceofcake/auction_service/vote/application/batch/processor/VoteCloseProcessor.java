@@ -1,5 +1,10 @@
 package com.pieceofcake.auction_service.vote.application.batch.processor;
 
+import com.pieceofcake.auction_service.auction.application.AuctionService;
+import com.pieceofcake.auction_service.auction.dto.in.CreateAuctionRequestDto;
+import com.pieceofcake.auction_service.auction.infrastructure.client.AuctionFeignClient;
+import com.pieceofcake.auction_service.auction.infrastructure.client.dto.in.CreateMoneyWithMemberUuidRequestDto;
+import com.pieceofcake.auction_service.auction.infrastructure.client.dto.in.enums.MoneyHistoryType;
 import com.pieceofcake.auction_service.kafka.producer.KafkaProducer;
 import com.pieceofcake.auction_service.vote.entity.Vote;
 import com.pieceofcake.auction_service.vote.entity.VoteDetail;
@@ -27,6 +32,8 @@ public class VoteCloseProcessor
     private final VoteDetailRepository voteDetailRepository;
     private final PieceFeignClient pieceFeignClient;
     private final KafkaProducer kafkaProducer;
+    private final AuctionService auctionService;
+    private final AuctionFeignClient auctionFeignClient;
 
     /**
      * 프로세스 단계: 투표 데이터 집계 후 새로운 상태 설정
@@ -62,7 +69,33 @@ public class VoteCloseProcessor
                 ? VoteStatus.CLOSED_ACCEPTED
                 : VoteStatus.CLOSED_REJECTED;
 
-        // 5) 변경된 상태를 반영한 Vote 반환 (DB 저장은 writer 단계에서)
+        if (newStatus == VoteStatus.CLOSED_ACCEPTED) {
+            // 5) 찬성이 많으면, auction 생성
+            auctionService.createAuction(
+                    CreateAuctionRequestDto.builder()
+                            .productUuid(vote.getProductUuid())
+                            .startingPrice(vote.getStartingPrice())
+                            .highestBidPrice(vote.getStartingPrice())
+                            .highestBidMemberUuid(vote.getStartingMemberUuid())
+                            .startTime(vote.getStartDate())
+                            .endTime(vote.getEndDate())
+                            .build()
+
+            );
+        } else {
+            // 반대가 많으면, 투표참여자의 보증금 반환
+            auctionFeignClient.createMoneyWithMemberUuid(
+                    CreateMoneyWithMemberUuidRequestDto.builder()
+                            .memberUuid(vote.getStartingMemberUuid())
+                            .amount(vote.getStartingPrice())
+                            .isPositive(true) // 입금 처리
+                            .historyType(MoneyHistoryType.FREEZE) // 보증금 환불
+                            .moneyHistoryDetail("투표 종료 - 보증금 환불")
+                            .build()
+            );
+        }
+
+        // 6) 변경된 상태를 반영한 Vote 반환 (DB 저장은 writer 단계에서)
         return Vote.builder()
                 .id(vote.getId())
                 .voteUuid(voteUuid)
@@ -76,6 +109,8 @@ public class VoteCloseProcessor
                 .noVoteCount(noVoteCount)
                 .totalCount(total)
                 .build();
+
+
     }
 
     /**
