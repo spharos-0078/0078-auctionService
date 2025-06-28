@@ -42,7 +42,7 @@ public enum BaseResponseStatus {
     VOTE_DETAIL_NOT_FOUND(HttpStatus.NOT_FOUND, false, 3201, "투표 내역을 찾을 수 없습니다."),
     VOTE_NOT_FOUND(HttpStatus.NOT_FOUND, false, 3202, "투표를 찾을 수 없습니다."),
     MONEY_SERVICE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, false, 3203, "금액 서비스와의 통신에 실패했습니다."),
-
+    INVALID_VOTE_STATUS(HttpStatus.BAD_REQUEST, false, 3204, "유효하지 않은 투표 상태입니다."),
 
 
 

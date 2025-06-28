@@ -97,14 +97,14 @@ public class BidController {
                     "- response는 내가 참여한 경매에 대한 {auctionUuid}[] 를 반환합니다."
     )
     @GetMapping("/me/auctions")
-    public List<ReadMyAuctionsResponseVo> getMyBidAuctions(
+    public BaseResponseEntity<List<ReadMyAuctionsResponseVo>> getMyBidAuctions(
             @RequestHeader(value = "X-Member-Uuid") String memberUuid
     ) {
 
-        return bidService.readMyAuctions(ReadMyAuctionsRequestDto.of(memberUuid))
+        return new BaseResponseEntity<>(bidService.readMyAuctions(ReadMyAuctionsRequestDto.of(memberUuid))
                 .stream()
                 .map(ReadMyAuctionsResponseDto::toVo)
-                .toList();
+                .toList());
     }
 
     @Operation(

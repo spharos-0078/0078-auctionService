@@ -8,15 +8,19 @@ import com.pieceofcake.auction_service.vote.dto.in.CreateVoteDetailRequestDto;
 import com.pieceofcake.auction_service.vote.dto.in.CreateVoteRequestDto;
 import com.pieceofcake.auction_service.vote.dto.in.ReadVoteDetailRequestDto;
 import com.pieceofcake.auction_service.vote.dto.in.ReadVoteRequestdto;
+import com.pieceofcake.auction_service.vote.dto.out.ReadVoteListResponseDto;
 import com.pieceofcake.auction_service.vote.vo.in.CreateVoteDetailRequestVo;
 import com.pieceofcake.auction_service.vote.vo.in.CreateVoteRequestVo;
 import com.pieceofcake.auction_service.vote.vo.in.ReadVoteDetailRequestVo;
 import com.pieceofcake.auction_service.vote.vo.in.ReadVoteRequestVo;
 import com.pieceofcake.auction_service.vote.vo.out.ReadVoteDetailResponseVo;
+import com.pieceofcake.auction_service.vote.vo.out.ReadVoteListResponseVo;
 import com.pieceofcake.auction_service.vote.vo.out.ReadVoteResponseVo;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/vote")
@@ -110,6 +114,24 @@ public class VoteController {
         ).toVo();
 
         return new BaseResponseEntity<>(result);
+    }
+
+    @Operation(
+            summary = "투표 목록 조회 API",
+            description = "모든 투표를 조회하거나 특정 상태의 투표만 조회하는 API입니다.\n\n" +
+                    "- 선택적 요청 파라미터로 `status`를 포함할 수 있습니다.\n" +
+                    "- status 파라미터가 있으면 해당 상태의 투표만 반환합니다.\n" +
+                    "- status 파라미터가 없으면 모든 투표를 반환합니다.\n" +
+                    "- 가능한 status 값: [READY, OPEN, CLOSED_ACCEPTED, CLOSED_REJECTED, DELETED]"
+    )
+    @GetMapping("/list")
+    public BaseResponseEntity<List<ReadVoteListResponseVo>> getVoteList(
+            @RequestParam(required = false) String status
+    ) {
+        return new BaseResponseEntity<>(voteService.readVoteList(status)
+                .stream()
+                .map(ReadVoteListResponseDto::toVo)
+                .toList());
     }
 
 }
