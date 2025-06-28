@@ -19,12 +19,6 @@ public class CreateVoteRequestVo {
     )
     private String productUuid;
     @Schema(
-            description = "경매 요청한 사람 UUID. 투표 시작 시 이 사람의 보증금이 묶이고, 경매 시작 시 반드시 이 사람이 입찰하게 됨",
-            requiredMode = Schema.RequiredMode.REQUIRED,
-            example = "10000"
-    )
-    private String startingMemberUuid;
-    @Schema(
             description = "경매 열릴 시 시작 가격",
             requiredMode = Schema.RequiredMode.REQUIRED,
             example = "10000"

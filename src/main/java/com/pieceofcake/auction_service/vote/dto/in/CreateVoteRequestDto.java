@@ -34,10 +34,10 @@ public class CreateVoteRequestDto {
         this.endDate = endDate;
     }
 
-    public static CreateVoteRequestDto from(CreateVoteRequestVo createVoteRequestVo) {
+    public static CreateVoteRequestDto from(CreateVoteRequestVo createVoteRequestVo, String memberUuid) {
         return CreateVoteRequestDto.builder()
                 .productUuid(createVoteRequestVo.getProductUuid())
-                .startingMemberUuid(createVoteRequestVo.getStartingMemberUuid())
+                .startingMemberUuid(memberUuid)
                 .startingPrice(createVoteRequestVo.getStartingPrice())
                 .startDate(createVoteRequestVo.getStartDate())
                 .endDate(createVoteRequestVo.getEndDate())
