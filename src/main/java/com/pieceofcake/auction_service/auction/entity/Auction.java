@@ -1,6 +1,7 @@
 package com.pieceofcake.auction_service.auction.entity;
 
 import com.pieceofcake.auction_service.auction.entity.enums.AuctionStatus;
+import com.pieceofcake.auction_service.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "auction")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Auction {
+public class Auction extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

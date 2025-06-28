@@ -3,6 +3,7 @@ package com.pieceofcake.auction_service.auction.application;
 import com.pieceofcake.auction_service.auction.dto.in.CreateAuctionRequestDto;
 import com.pieceofcake.auction_service.auction.dto.in.ReadHighestBidPriceRequestDto;
 import com.pieceofcake.auction_service.auction.dto.in.UpdateAuctionDto;
+import com.pieceofcake.auction_service.auction.dto.out.ReadAuctionListResponseDto;
 import com.pieceofcake.auction_service.auction.dto.out.ReadHighestBidPriceResponseDto;
 import com.pieceofcake.auction_service.auction.dto.out.UpdateAuctionPriceSseDto;
 import com.pieceofcake.auction_service.auction.entity.Auction;
@@ -17,6 +18,7 @@ import com.pieceofcake.auction_service.bid.infrastructure.BidRepository;
 import com.pieceofcake.auction_service.common.entity.BaseResponseStatus;
 import com.pieceofcake.auction_service.common.exception.BaseException;
 import com.pieceofcake.auction_service.kafka.producer.KafkaProducer;
+import com.pieceofcake.auction_service.vote.entity.enums.VoteStatus;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +34,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -249,6 +252,28 @@ public class AuctionServiceImpl implements AuctionService{
                 kafkaProducer.sendAuctionCloseEvent(auction.getProductUuid());
             }
         });
+    }
+
+    @Override
+    public List<ReadAuctionListResponseDto> readAuctionList(String status) {
+        List<Auction> auctions;
+
+        if (status != null && !status.isEmpty()) {
+            try {
+                AuctionStatus auctionStatus = AuctionStatus.valueOf(status);
+                auctions = auctionRepository.findAllByAuctionStatus(auctionStatus);
+            } catch (IllegalArgumentException e) {
+                // 유효하지 않은 status 값이 전달된 경우
+                throw new BaseException(BaseResponseStatus.INVALID_AUCTION_STATUS);
+            }
+        } else {
+            auctions = auctionRepository.findAll();
+        }
+
+        return auctions
+                .stream()
+                .map(ReadAuctionListResponseDto::from)
+                .toList();
     }
 
 }

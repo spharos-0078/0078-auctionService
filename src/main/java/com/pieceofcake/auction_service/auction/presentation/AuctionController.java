@@ -4,10 +4,13 @@ import com.pieceofcake.auction_service.auction.application.AuctionService;
 import com.pieceofcake.auction_service.auction.application.sse.AuctionEventService;
 import com.pieceofcake.auction_service.auction.dto.in.CreateAuctionRequestDto;
 import com.pieceofcake.auction_service.auction.dto.in.ReadHighestBidPriceRequestDto;
+import com.pieceofcake.auction_service.auction.dto.out.ReadAuctionListResponseDto;
 import com.pieceofcake.auction_service.auction.dto.out.UpdateAuctionPriceSseDto;
 import com.pieceofcake.auction_service.auction.vo.in.CreateAuctionRequestVo;
 import com.pieceofcake.auction_service.auction.vo.in.ReadHighestBidPriceRequestVo;
+import com.pieceofcake.auction_service.auction.vo.out.ReadAuctionListResponseVo;
 import com.pieceofcake.auction_service.auction.vo.out.ReadHighestBidPriceResponseVo;
+import com.pieceofcake.auction_service.common.entity.BaseResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -72,6 +75,16 @@ public class AuctionController {
                         .event("price-update")
                         .data(event)
                         .build());
+    }
+
+    @GetMapping("/list")
+    public BaseResponseEntity<List<ReadAuctionListResponseVo>> getAuctionList(
+            @RequestParam(required = false) String status
+    ) {
+        return new BaseResponseEntity<>(auctionService.readAuctionList(status)
+                .stream()
+                .map(ReadAuctionListResponseDto::toVo)
+                .toList());
     }
 
 }
