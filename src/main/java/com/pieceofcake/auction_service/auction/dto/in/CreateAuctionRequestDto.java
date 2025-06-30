@@ -14,6 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class CreateAuctionRequestDto {
     private String productUuid;
+    private String pieceProductUuid;
     private Long startingPrice;
     private Long highestBidPrice;
     private String highestBidMemberUuid;
@@ -21,24 +22,32 @@ public class CreateAuctionRequestDto {
     private LocalDateTime endDate;
 
     @Builder
-    public CreateAuctionRequestDto(String productUuid, Long startingPrice, Long highestBidPrice,
-                                   String highestBidMemberUuid, LocalDateTime startTime, LocalDateTime endTime) {
+    public CreateAuctionRequestDto(
+            String productUuid,
+            String pieceProductUuid,
+            Long startingPrice,
+            Long highestBidPrice,
+            String highestBidMemberUuid,
+            LocalDateTime startDate,
+            LocalDateTime endDate) {
         this.productUuid = productUuid;
+        this.pieceProductUuid = pieceProductUuid;
         this.startingPrice = startingPrice;
         this.highestBidPrice = highestBidPrice;
         this.highestBidMemberUuid = highestBidMemberUuid;
-        this.startDate = startTime;
-        this.endDate = endTime;
+        this.startDate = startDate;
+        this.endDate = endDate;
     }
 
     public static CreateAuctionRequestDto from(CreateAuctionRequestVo createAuctionRequestVo) {
         return CreateAuctionRequestDto.builder()
+                .pieceProductUuid(createAuctionRequestVo.getPieceProductUuid())
                 .productUuid(createAuctionRequestVo.getProductUuid())
                 .startingPrice(createAuctionRequestVo.getStartingPrice())
                 .highestBidPrice(createAuctionRequestVo.getHighestBidPrice())
                 .highestBidMemberUuid(createAuctionRequestVo.getHighestBidMemberUuid())
-                .startTime(createAuctionRequestVo.getStartDate())
-                .endTime(createAuctionRequestVo.getEndDate())
+                .startDate(createAuctionRequestVo.getStartDate())
+                .endDate(createAuctionRequestVo.getEndDate())
                 .build();
     }
 

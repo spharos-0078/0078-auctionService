@@ -19,6 +19,12 @@ public class CreateVoteRequestVo {
     )
     private String productUuid;
     @Schema(
+            description = "조각상품 UUID",
+            requiredMode = Schema.RequiredMode.REQUIRED,
+            example = "piece-product-123"
+    )
+    private String pieceProductUuid;
+    @Schema(
             description = "경매 열릴 시 시작 가격",
             requiredMode = Schema.RequiredMode.REQUIRED,
             example = "10000"
@@ -39,11 +45,13 @@ public class CreateVoteRequestVo {
 
     @Builder
     public CreateVoteRequestVo(
+            String pieceProductUuid,
             String productUuid,
             Long startingPrice,
             LocalDateTime startDate,
             LocalDateTime endDate
     ) {
+        this.pieceProductUuid = pieceProductUuid;
         this.productUuid = productUuid;
         this.startingPrice = startingPrice;
         this.startDate = startDate;

@@ -25,6 +25,9 @@ public class Auction extends BaseEntity {
     @Column(name = "productUuid", nullable = false)
     private String productUuid;
 
+    @Column(name = "piece_product_uuid", nullable = false)
+    private String pieceProductUuid;
+
     @Column(name = "starting_price", nullable = false)
     private Long startingPrice;
 

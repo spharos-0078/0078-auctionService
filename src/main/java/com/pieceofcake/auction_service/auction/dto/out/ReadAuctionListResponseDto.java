@@ -11,20 +11,24 @@ import lombok.NoArgsConstructor;
 public class ReadAuctionListResponseDto {
     private String auctionUuid;
     private String productUuid;
+    private String pieceProductUuid;
 
     @Builder
     public ReadAuctionListResponseDto(
             String auctionUuid,
-            String productUuid
+            String productUuid,
+            String pieceProductUuid
     ) {
         this.auctionUuid = auctionUuid;
         this.productUuid = productUuid;
+        this.pieceProductUuid = pieceProductUuid;
     }
 
     public static ReadAuctionListResponseDto from(Auction auction) {
         return ReadAuctionListResponseDto.builder()
                 .auctionUuid(auction.getAuctionUuid())
                 .productUuid(auction.getProductUuid())
+                .pieceProductUuid(auction.getPieceProductUuid())
                 .build();
     }
 
@@ -32,6 +36,7 @@ public class ReadAuctionListResponseDto {
         return ReadAuctionListResponseVo.builder()
                 .auctionUuid(auctionUuid)
                 .productUuid(productUuid)
+                .pieceProductUuid(pieceProductUuid)
                 .build();
     }
 }

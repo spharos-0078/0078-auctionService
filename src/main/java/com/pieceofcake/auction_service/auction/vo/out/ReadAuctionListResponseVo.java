@@ -9,13 +9,16 @@ import lombok.NoArgsConstructor;
 public class ReadAuctionListResponseVo {
     private String auctionUuid;
     private String productUuid;
+    private String pieceProductUuid;
 
     @Builder
     public ReadAuctionListResponseVo(
             String auctionUuid,
-            String productUuid
+            String productUuid,
+            String pieceProductUuid
     ) {
         this.auctionUuid = auctionUuid;
         this.productUuid = productUuid;
+        this.pieceProductUuid = pieceProductUuid;
     }
 }

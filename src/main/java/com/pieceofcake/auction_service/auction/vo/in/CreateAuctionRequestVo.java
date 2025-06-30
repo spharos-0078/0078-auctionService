@@ -15,6 +15,12 @@ public class CreateAuctionRequestVo {
     )
     private String productUuid;
     @Schema(
+            description = "조각 상품 UUID",
+            example = "piece-123",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private String pieceProductUuid;
+    @Schema(
             description = "경매 시작 가격",
             example = "10000",
             requiredMode = Schema.RequiredMode.REQUIRED

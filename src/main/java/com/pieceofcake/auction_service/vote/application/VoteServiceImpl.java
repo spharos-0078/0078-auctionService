@@ -49,7 +49,7 @@ public class VoteServiceImpl implements VoteService {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                kafkaProducer.sendVoteStartEvent(vote.getProductUuid());
+                kafkaProducer.sendVoteStartEvent(vote.getPieceProductUuid());
             }
         });
     }
