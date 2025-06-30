@@ -1,5 +1,7 @@
 package com.pieceofcake.auction_service.vote.application.batch.config;
 
+import com.pieceofcake.auction_service.auction.application.AuctionService;
+import com.pieceofcake.auction_service.auction.infrastructure.client.AuctionFeignClient;
 import com.pieceofcake.auction_service.kafka.producer.KafkaProducer;
 import com.pieceofcake.auction_service.vote.application.batch.processor.VoteCloseProcessor;
 import com.pieceofcake.auction_service.vote.entity.Vote;
@@ -32,6 +34,8 @@ public class VoteCloseBatchConfig {
     private final VoteRepository voteRepository;
     private final VoteDetailRepository voteDetailRepository;
     private final PieceFeignClient pieceFeignClient;
+    private final AuctionService auctionService;
+    private final AuctionFeignClient auctionFeignClient;
     private final KafkaProducer kafkaProducer;
 
     /**
@@ -48,7 +52,7 @@ public class VoteCloseBatchConfig {
     @Bean
     public VoteCloseProcessor voteCloseProcessor() {
         // 생성자에 voteDetailRepo, feignClient, kafkaProducer 모두 전달하도록 수정
-        return new VoteCloseProcessor(voteDetailRepository, pieceFeignClient, kafkaProducer);
+        return new VoteCloseProcessor(voteDetailRepository, pieceFeignClient, kafkaProducer, auctionService, auctionFeignClient);
     }
 
     /**

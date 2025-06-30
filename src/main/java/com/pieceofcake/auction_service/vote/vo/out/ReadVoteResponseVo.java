@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class ReadVoteResponseVo {
     private String voteUuid;
     private String productUuid;
+    private String pieceProductUuid;
     private String startingMemberUuid;
     private Long startingPrice;
     private LocalDateTime startDate;
@@ -26,6 +27,7 @@ public class ReadVoteResponseVo {
     public ReadVoteResponseVo(
             String voteUuid,
             String productUuid,
+            String pieceProductUuid,
             String startingMemberUuid,
             Long startingPrice,
             LocalDateTime startDate,
@@ -38,6 +40,7 @@ public class ReadVoteResponseVo {
     ) {
         this.voteUuid = voteUuid;
         this.productUuid = productUuid;
+        this.pieceProductUuid = pieceProductUuid;
         this.startingMemberUuid = startingMemberUuid;
         this.startingPrice = startingPrice;
         this.startDate = startDate;

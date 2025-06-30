@@ -15,11 +15,23 @@ public class CreateAuctionRequestVo {
     )
     private String productUuid;
     @Schema(
+            description = "조각 상품 UUID",
+            example = "piece-123",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private String pieceProductUuid;
+    @Schema(
             description = "경매 시작 가격",
             example = "10000",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private Long startingPrice;
+    @Schema(
+            description = "최고 입찰 uuid",
+            example = "bid-123",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private String highestBidUuid;
     @Schema(
             description = "최고 입찰가. 경매가 진행됨에 따라 update 될 예정",
             example = "123000"

@@ -19,11 +19,11 @@ public class CreateVoteRequestVo {
     )
     private String productUuid;
     @Schema(
-            description = "경매 요청한 사람 UUID. 투표 시작 시 이 사람의 보증금이 묶이고, 경매 시작 시 반드시 이 사람이 입찰하게 됨",
+            description = "조각상품 UUID",
             requiredMode = Schema.RequiredMode.REQUIRED,
-            example = "10000"
+            example = "piece-product-123"
     )
-    private String startingMemberUuid;
+    private String pieceProductUuid;
     @Schema(
             description = "경매 열릴 시 시작 가격",
             requiredMode = Schema.RequiredMode.REQUIRED,
@@ -45,11 +45,13 @@ public class CreateVoteRequestVo {
 
     @Builder
     public CreateVoteRequestVo(
+            String pieceProductUuid,
             String productUuid,
             Long startingPrice,
             LocalDateTime startDate,
             LocalDateTime endDate
     ) {
+        this.pieceProductUuid = pieceProductUuid;
         this.productUuid = productUuid;
         this.startingPrice = startingPrice;
         this.startDate = startDate;

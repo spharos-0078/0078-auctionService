@@ -47,6 +47,7 @@ public class UpdateAuctionDto {
                 .id(auction.getId())
                 .auctionUuid(auction.getAuctionUuid())
                 .productUuid(auction.getProductUuid())
+                .pieceProductUuid(auction.getPieceProductUuid())
                 .startingPrice(auction.getStartingPrice())
                 .highestBidUuid(this.bidUuid)
                 .highestBidPrice(this.bidPrice)

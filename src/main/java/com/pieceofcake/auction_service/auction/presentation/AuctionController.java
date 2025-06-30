@@ -4,10 +4,13 @@ import com.pieceofcake.auction_service.auction.application.AuctionService;
 import com.pieceofcake.auction_service.auction.application.sse.AuctionEventService;
 import com.pieceofcake.auction_service.auction.dto.in.CreateAuctionRequestDto;
 import com.pieceofcake.auction_service.auction.dto.in.ReadHighestBidPriceRequestDto;
+import com.pieceofcake.auction_service.auction.dto.out.ReadAuctionListResponseDto;
 import com.pieceofcake.auction_service.auction.dto.out.UpdateAuctionPriceSseDto;
 import com.pieceofcake.auction_service.auction.vo.in.CreateAuctionRequestVo;
 import com.pieceofcake.auction_service.auction.vo.in.ReadHighestBidPriceRequestVo;
+import com.pieceofcake.auction_service.auction.vo.out.ReadAuctionListResponseVo;
 import com.pieceofcake.auction_service.auction.vo.out.ReadHighestBidPriceResponseVo;
+import com.pieceofcake.auction_service.common.entity.BaseResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -44,6 +47,7 @@ public class AuctionController {
     @Operation(
             summary = "경매 생성 API",
             description = "새로운 경매를 생성하는 API입니다.\n\n" +
+                    "- 사실상 쓰지 않을 api입니다. (투표 종료 즉시 결과에 따라 서비스 딴에서 auction을 만들 예정입니다\n\n" +
                     "- 요청 본문에 `CreateAuctionRequestVo` 객체를 포함해야 합니다.\n\n" +
                     "- 경매 생성 시, productUuid, startingPrice 등을 포함합니다.\n\n" +
                     "- highestBidPrice와 highestBidMemberUuid는 null로 해도 됩니다. 정책상 차후 '구매희망자 등장 => 경매진행투표 => 경매 찬성, 이후 구매희망자를 강제로 최초입찰자로'.\n\n" +
@@ -71,6 +75,16 @@ public class AuctionController {
                         .event("price-update")
                         .data(event)
                         .build());
+    }
+
+    @GetMapping("/list")
+    public BaseResponseEntity<List<ReadAuctionListResponseVo>> getAuctionList(
+            @RequestParam(required = false) String status
+    ) {
+        return new BaseResponseEntity<>(auctionService.readAuctionList(status)
+                .stream()
+                .map(ReadAuctionListResponseDto::toVo)
+                .toList());
     }
 
 }

@@ -14,31 +14,44 @@ import java.util.UUID;
 @NoArgsConstructor
 public class CreateAuctionRequestDto {
     private String productUuid;
+    private String pieceProductUuid;
     private Long startingPrice;
+    private String highestBidUuid;
     private Long highestBidPrice;
     private String highestBidMemberUuid;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 
     @Builder
-    public CreateAuctionRequestDto(String productUuid, Long startingPrice, Long highestBidPrice,
-                                   String highestBidMemberUuid, LocalDateTime startTime, LocalDateTime endTime) {
+    public CreateAuctionRequestDto(
+            String productUuid,
+            String pieceProductUuid,
+            Long startingPrice,
+            String highestBidUuid,
+            Long highestBidPrice,
+            String highestBidMemberUuid,
+            LocalDateTime startDate,
+            LocalDateTime endDate) {
         this.productUuid = productUuid;
+        this.pieceProductUuid = pieceProductUuid;
         this.startingPrice = startingPrice;
+        this.highestBidUuid = highestBidUuid;
         this.highestBidPrice = highestBidPrice;
         this.highestBidMemberUuid = highestBidMemberUuid;
-        this.startDate = startTime;
-        this.endDate = endTime;
+        this.startDate = startDate;
+        this.endDate = endDate;
     }
 
     public static CreateAuctionRequestDto from(CreateAuctionRequestVo createAuctionRequestVo) {
         return CreateAuctionRequestDto.builder()
                 .productUuid(createAuctionRequestVo.getProductUuid())
+                .pieceProductUuid(createAuctionRequestVo.getPieceProductUuid())
                 .startingPrice(createAuctionRequestVo.getStartingPrice())
+                .highestBidUuid(createAuctionRequestVo.getHighestBidUuid())
                 .highestBidPrice(createAuctionRequestVo.getHighestBidPrice())
                 .highestBidMemberUuid(createAuctionRequestVo.getHighestBidMemberUuid())
-                .startTime(createAuctionRequestVo.getStartDate())
-                .endTime(createAuctionRequestVo.getEndDate())
+                .startDate(createAuctionRequestVo.getStartDate())
+                .endDate(createAuctionRequestVo.getEndDate())
                 .build();
     }
 
@@ -46,7 +59,9 @@ public class CreateAuctionRequestDto {
         return Auction.builder()
                 .auctionUuid(UUID.randomUUID().toString())
                 .productUuid(this.productUuid)
+                .pieceProductUuid(this.pieceProductUuid)
                 .startingPrice(this.startingPrice)
+                .highestBidUuid(this.highestBidUuid)
                 .highestBidPrice(this.highestBidPrice)
                 .highestBidMemberUuid(this.highestBidMemberUuid)
                 .startDate(this.startDate)

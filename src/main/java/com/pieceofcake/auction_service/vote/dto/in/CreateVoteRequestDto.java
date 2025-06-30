@@ -13,6 +13,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor
 public class CreateVoteRequestDto {
+    private String pieceProductUuid;
     private String productUuid;
     private String startingMemberUuid;
     private Long startingPrice;
@@ -21,12 +22,14 @@ public class CreateVoteRequestDto {
 
     @Builder
     public CreateVoteRequestDto(
+            String pieceProductUuid,
             String productUuid,
             String startingMemberUuid,
             Long startingPrice,
             LocalDateTime startDate,
             LocalDateTime endDate
     ) {
+        this.pieceProductUuid = pieceProductUuid;
         this.productUuid = productUuid;
         this.startingMemberUuid = startingMemberUuid;
         this.startingPrice = startingPrice;
@@ -34,10 +37,11 @@ public class CreateVoteRequestDto {
         this.endDate = endDate;
     }
 
-    public static CreateVoteRequestDto from(CreateVoteRequestVo createVoteRequestVo) {
+    public static CreateVoteRequestDto from(CreateVoteRequestVo createVoteRequestVo, String memberUuid) {
         return CreateVoteRequestDto.builder()
+                .pieceProductUuid(createVoteRequestVo.getPieceProductUuid())
                 .productUuid(createVoteRequestVo.getProductUuid())
-                .startingMemberUuid(createVoteRequestVo.getStartingMemberUuid())
+                .startingMemberUuid(memberUuid)
                 .startingPrice(createVoteRequestVo.getStartingPrice())
                 .startDate(createVoteRequestVo.getStartDate())
                 .endDate(createVoteRequestVo.getEndDate())
@@ -47,6 +51,7 @@ public class CreateVoteRequestDto {
     public Vote toEntity() {
         return Vote.builder()
                 .voteUuid(UUID.randomUUID().toString())
+                .pieceProductUuid(this.pieceProductUuid)
                 .productUuid(this.productUuid)
                 .startingMemberUuid(this.startingMemberUuid)
                 .startingPrice(this.startingPrice)

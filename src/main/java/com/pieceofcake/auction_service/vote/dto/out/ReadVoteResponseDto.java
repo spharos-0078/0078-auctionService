@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 public class ReadVoteResponseDto {
     private String voteUuid;
     private String productUuid;
+    private String pieceProductUuid;
     private String startingMemberUuid;
     private Long startingPrice;
     private LocalDateTime startDate;
@@ -28,6 +29,7 @@ public class ReadVoteResponseDto {
     public ReadVoteResponseDto(
             String voteUuid,
             String productUuid,
+            String pieceProductUuid,
             String startingMemberUuid,
             Long startingPrice,
             LocalDateTime startDate,
@@ -40,6 +42,7 @@ public class ReadVoteResponseDto {
     ) {
         this.voteUuid = voteUuid;
         this.productUuid = productUuid;
+        this.pieceProductUuid = pieceProductUuid;
         this.startingMemberUuid = startingMemberUuid;
         this.startingPrice = startingPrice;
         this.startDate = startDate;
@@ -55,6 +58,7 @@ public class ReadVoteResponseDto {
         return ReadVoteResponseDto.builder()
                 .voteUuid(vote.getVoteUuid())
                 .productUuid(vote.getProductUuid())
+                .pieceProductUuid(vote.getPieceProductUuid())
                 .startingMemberUuid(vote.getStartingMemberUuid())
                 .startingPrice(vote.getStartingPrice())
                 .startDate(vote.getStartDate())
@@ -71,6 +75,7 @@ public class ReadVoteResponseDto {
         return ReadVoteResponseVo.builder()
                 .voteUuid(this.voteUuid)
                 .productUuid(this.productUuid)
+                .pieceProductUuid(this.pieceProductUuid)
                 .startingMemberUuid(this.startingMemberUuid)
                 .startingPrice(this.startingPrice)
                 .startDate(this.startDate)

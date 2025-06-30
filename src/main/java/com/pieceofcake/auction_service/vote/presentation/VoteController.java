@@ -8,15 +8,19 @@ import com.pieceofcake.auction_service.vote.dto.in.CreateVoteDetailRequestDto;
 import com.pieceofcake.auction_service.vote.dto.in.CreateVoteRequestDto;
 import com.pieceofcake.auction_service.vote.dto.in.ReadVoteDetailRequestDto;
 import com.pieceofcake.auction_service.vote.dto.in.ReadVoteRequestdto;
+import com.pieceofcake.auction_service.vote.dto.out.ReadVoteListResponseDto;
 import com.pieceofcake.auction_service.vote.vo.in.CreateVoteDetailRequestVo;
 import com.pieceofcake.auction_service.vote.vo.in.CreateVoteRequestVo;
 import com.pieceofcake.auction_service.vote.vo.in.ReadVoteDetailRequestVo;
 import com.pieceofcake.auction_service.vote.vo.in.ReadVoteRequestVo;
 import com.pieceofcake.auction_service.vote.vo.out.ReadVoteDetailResponseVo;
+import com.pieceofcake.auction_service.vote.vo.out.ReadVoteListResponseVo;
 import com.pieceofcake.auction_service.vote.vo.out.ReadVoteResponseVo;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/vote")
@@ -31,16 +35,17 @@ public class VoteController {
             description = "투표를 생성하는 API입니다.\n\n" +
                     "- 요청 본문에 `CreateVoteRequestVo` 객체를 포함해야 합니다.\n\n" +
                     "- 어느 상황에 투표가 생성되는지는 잘 모르겠습니다.\n\n" +
-                    "  - 구매 희망자 등장 시? 매 1주일마다? ...\n\n" +
+                    "  - 우선 jwt에 있는 memberUuid를 startingMemberUuid로 삼을까 합니다.\n\n" +
                     "- createVoteRequestVo 에는 {productUuid, startingPrice, startDate, endDate}가 포함되어야 합니다.\n\n" +
                     "  - `startingPrice`는 '상품이 이 가격에 경매 시작이면 경매 할건가?'라는 질문때문에 넣었습니다.\n\n" +
                     "  - 사실 빼도 되나? 싶긴 한데, 현재 DB에는 nullable=false 로 되어 있습니다. 수정하고싶으면 회의 시작..."
     )
     @PostMapping("")
     public BaseResponseEntity<Void> createVote(
-            @RequestBody CreateVoteRequestVo createVoteRequestVo
+            @RequestBody CreateVoteRequestVo createVoteRequestVo,
+            @RequestHeader(value = "X-Member-Uuid") String memberUuid
             ) {
-        voteService.createVote(CreateVoteRequestDto.from(createVoteRequestVo));
+        voteService.createVote(CreateVoteRequestDto.from(createVoteRequestVo, memberUuid));
         return new BaseResponseEntity<>(BaseResponseStatus.SUCCESS);
     }
 
@@ -109,6 +114,24 @@ public class VoteController {
         ).toVo();
 
         return new BaseResponseEntity<>(result);
+    }
+
+    @Operation(
+            summary = "투표 목록 조회 API",
+            description = "모든 투표를 조회하거나 특정 상태의 투표만 조회하는 API입니다.\n\n" +
+                    "- 선택적 요청 파라미터로 `status`를 포함할 수 있습니다.\n" +
+                    "- status 파라미터가 있으면 해당 상태의 투표만 반환합니다.\n" +
+                    "- status 파라미터가 없으면 모든 투표를 반환합니다.\n" +
+                    "- 가능한 status 값: [READY, OPEN, CLOSED_ACCEPTED, CLOSED_REJECTED, DELETED]"
+    )
+    @GetMapping("/list")
+    public BaseResponseEntity<List<ReadVoteListResponseVo>> getVoteList(
+            @RequestParam(required = false) String status
+    ) {
+        return new BaseResponseEntity<>(voteService.readVoteList(status)
+                .stream()
+                .map(ReadVoteListResponseDto::toVo)
+                .toList());
     }
 
 }

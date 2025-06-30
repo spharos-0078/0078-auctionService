@@ -15,12 +15,13 @@ import java.util.List;
 
 @FeignClient(
         name = "piece-service",
+        contextId = "piece-product-client", // 충돌 방지용 ID
         url = "${piece-service.url}",
         configuration = FeignConfig.class)
 public interface PieceFeignClient {
 
-    @GetMapping("/api/v1/piece/owned/{productUuid}/list")
+    @GetMapping("/api/v1/piece/owned/{pieceProductUuid}/list")
     MemberPieceResponseWrapper getMemberPieceQuantities(
-            @PathVariable("productUuid") String productUuid
+            @PathVariable("pieceProductUuid") String pieceProductUuid
     );
 }

@@ -16,7 +16,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
     properties:
       hibernate:
@@ -38,7 +38,7 @@ eureka:
     fetch-registry: true
 
 piece-service:
-  url: ${EC2_HOST:http://localhost:8000/piece-service}
+  url: http://localhost:8000/piece-service
 
 payment-service:
   url: ${EC2_HOST:http://localhost:8000/payment-service}

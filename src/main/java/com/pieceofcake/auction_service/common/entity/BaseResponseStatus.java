@@ -35,14 +35,14 @@ public enum BaseResponseStatus {
     AUCTION_NOT_FOUND(HttpStatus.NOT_FOUND, false, 3100, "경매를 찾을 수 없습니다."),
     AUCTION_NOT_ONGOING(HttpStatus.BAD_REQUEST, false, 3101, "진행 중인 경매가 아닙니다."),
     AUCTION_ALREADY_EXISTS(HttpStatus.CONFLICT, false, 3102, "이미 존재하는 경매상품입니다."),
-
+    INVALID_AUCTION_STATUS(HttpStatus.BAD_REQUEST, false, 3103, "유효하지 않은 경매 상태입니다."),
 
     // 3200: vote service error
     ALREADY_VOTED(HttpStatus.BAD_REQUEST, false, 3200, "이미 투표한 경매입니다."),
     VOTE_DETAIL_NOT_FOUND(HttpStatus.NOT_FOUND, false, 3201, "투표 내역을 찾을 수 없습니다."),
     VOTE_NOT_FOUND(HttpStatus.NOT_FOUND, false, 3202, "투표를 찾을 수 없습니다."),
     MONEY_SERVICE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, false, 3203, "금액 서비스와의 통신에 실패했습니다."),
-
+    INVALID_VOTE_STATUS(HttpStatus.BAD_REQUEST, false, 3204, "유효하지 않은 투표 상태입니다."),
 
 
 

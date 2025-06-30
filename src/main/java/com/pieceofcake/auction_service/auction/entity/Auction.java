@@ -1,6 +1,7 @@
 package com.pieceofcake.auction_service.auction.entity;
 
 import com.pieceofcake.auction_service.auction.entity.enums.AuctionStatus;
+import com.pieceofcake.auction_service.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "auction")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Auction {
+public class Auction extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,6 +24,9 @@ public class Auction {
 
     @Column(name = "productUuid", nullable = false)
     private String productUuid;
+
+    @Column(name = "piece_product_uuid", nullable = false)
+    private String pieceProductUuid;
 
     @Column(name = "starting_price", nullable = false)
     private Long startingPrice;
@@ -51,6 +55,7 @@ public class Auction {
             Long id,
             String auctionUuid,
             String productUuid,
+            String pieceProductUuid,
             Long startingPrice,
             String highestBidUuid,
             Long highestBidPrice,
@@ -61,6 +66,7 @@ public class Auction {
     ) {
         this.id = id;
         this.auctionUuid = auctionUuid;
+        this.pieceProductUuid = pieceProductUuid;
         this.productUuid = productUuid;
         this.startingPrice = startingPrice;
         this.highestBidUuid = highestBidUuid;

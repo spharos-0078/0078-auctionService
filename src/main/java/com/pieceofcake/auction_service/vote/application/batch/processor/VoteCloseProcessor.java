@@ -1,5 +1,10 @@
 package com.pieceofcake.auction_service.vote.application.batch.processor;
 
+import com.pieceofcake.auction_service.auction.application.AuctionService;
+import com.pieceofcake.auction_service.auction.dto.in.CreateAuctionRequestDto;
+import com.pieceofcake.auction_service.auction.infrastructure.client.AuctionFeignClient;
+import com.pieceofcake.auction_service.auction.infrastructure.client.dto.in.CreateMoneyWithMemberUuidRequestDto;
+import com.pieceofcake.auction_service.auction.infrastructure.client.dto.in.enums.MoneyHistoryType;
 import com.pieceofcake.auction_service.kafka.producer.KafkaProducer;
 import com.pieceofcake.auction_service.vote.entity.Vote;
 import com.pieceofcake.auction_service.vote.entity.VoteDetail;
@@ -27,6 +32,8 @@ public class VoteCloseProcessor
     private final VoteDetailRepository voteDetailRepository;
     private final PieceFeignClient pieceFeignClient;
     private final KafkaProducer kafkaProducer;
+    private final AuctionService auctionService;
+    private final AuctionFeignClient auctionFeignClient;
 
     /**
      * 프로세스 단계: 투표 데이터 집계 후 새로운 상태 설정
@@ -35,6 +42,7 @@ public class VoteCloseProcessor
     public Vote process(Vote vote) {
         String voteUuid    = vote.getVoteUuid();
         String productUuid = vote.getProductUuid();
+        String pieceProductUuid = vote.getPieceProductUuid();
 
         // 1) 참여자별 투표 내역 조회
         List<VoteDetail> details = voteDetailRepository.findAllByVoteUuid(voteUuid);
@@ -42,9 +50,9 @@ public class VoteCloseProcessor
                 .collect(Collectors.toMap(VoteDetail::getMemberUuid, VoteDetail::getVoteChoice));
 
         // 2) 조각 수 조회
-        MemberPieceResponseWrapper response = pieceFeignClient.getMemberPieceQuantities(productUuid);
+        MemberPieceResponseWrapper response = pieceFeignClient.getMemberPieceQuantities(pieceProductUuid);
         List<MemberPieceResponseDto> pieceInfos = response.getResult();
-
+        log.info("조각 수 조회 결과: {}", pieceInfos);
         // 3) 가중치 집계
         long agreeCount = 0, disagreeCount = 0, noVoteCount = 0, total = 0;
         for (MemberPieceResponseDto info : pieceInfos) {
@@ -62,11 +70,41 @@ public class VoteCloseProcessor
                 ? VoteStatus.CLOSED_ACCEPTED
                 : VoteStatus.CLOSED_REJECTED;
 
-        // 5) 변경된 상태를 반영한 Vote 반환 (DB 저장은 writer 단계에서)
+        if (newStatus == VoteStatus.CLOSED_ACCEPTED) {
+            // 5) 찬성이 많으면, auction 생성
+            auctionService.createAuction(
+                    CreateAuctionRequestDto.builder()
+                            .productUuid(vote.getProductUuid())
+                            .pieceProductUuid(vote.getPieceProductUuid())
+                            .startingPrice(vote.getStartingPrice())
+                            .highestBidUuid(vote.getStartingMemberUuid())
+                            .highestBidPrice(vote.getStartingPrice())
+                            .highestBidMemberUuid(vote.getStartingMemberUuid())
+                            .startDate(vote.getEndDate().plusHours(48))
+                            .endDate(vote.getEndDate())
+                            .build()
+
+            );
+        } else {
+            // 반대가 많으면, 투표참여자의 보증금 반환
+            auctionFeignClient.createMoneyWithMemberUuid(
+                    CreateMoneyWithMemberUuidRequestDto.builder()
+                            .memberUuid(vote.getStartingMemberUuid())
+                            .amount(vote.getStartingPrice())
+                            .isPositive(true) // 입금 처리
+                            .historyType(MoneyHistoryType.FREEZE) // 보증금 환불
+                            .moneyHistoryDetail("투표 종료 - 보증금 환불")
+                            .build()
+            );
+        }
+
+        // 6) 변경된 상태를 반영한 Vote 반환 (DB 저장은 writer 단계에서)
         return Vote.builder()
                 .id(vote.getId())
                 .voteUuid(voteUuid)
                 .productUuid(productUuid)
+                .pieceProductUuid(pieceProductUuid)
+                .startingMemberUuid(vote.getStartingMemberUuid())
                 .startingPrice(vote.getStartingPrice())
                 .startDate(vote.getStartDate())
                 .endDate(vote.getEndDate())
@@ -76,6 +114,8 @@ public class VoteCloseProcessor
                 .noVoteCount(noVoteCount)
                 .totalCount(total)
                 .build();
+
+
     }
 
     /**
@@ -90,7 +130,7 @@ public class VoteCloseProcessor
     @Override
     public void afterWrite(Chunk<? extends Vote> items) {
         items.forEach(vote ->
-                kafkaProducer.sendVoteCloseEvent(vote.getProductUuid())
+                kafkaProducer.sendVoteCloseEvent(vote.getPieceProductUuid())
         );
     }
 
