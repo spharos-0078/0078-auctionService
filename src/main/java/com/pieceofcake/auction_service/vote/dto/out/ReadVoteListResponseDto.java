@@ -13,20 +13,24 @@ import java.time.LocalDateTime;
 public class ReadVoteListResponseDto {
     private String voteUuid;
     private String productUuid;
+    private String pieceProductUuid;
 
     @Builder
     public ReadVoteListResponseDto(
             String voteUuid,
-            String productUuid
+            String productUuid,
+            String pieceProductUuid
     ) {
         this.voteUuid = voteUuid;
         this.productUuid = productUuid;
+        this.pieceProductUuid = pieceProductUuid;
     }
 
     public static ReadVoteListResponseDto from(Vote vote) {
         return ReadVoteListResponseDto.builder()
                 .voteUuid(vote.getVoteUuid())
                 .productUuid(vote.getProductUuid())
+                .pieceProductUuid(vote.getPieceProductUuid())
                 .build();
     }
 
@@ -34,6 +38,7 @@ public class ReadVoteListResponseDto {
         return ReadVoteListResponseVo.builder()
                 .voteUuid(voteUuid)
                 .productUuid(productUuid)
+                .pieceProductUuid(pieceProductUuid)
                 .build();
     }
 

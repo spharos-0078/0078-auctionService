@@ -55,6 +55,7 @@ public class Auction extends BaseEntity {
             Long id,
             String auctionUuid,
             String productUuid,
+            String pieceProductUuid,
             Long startingPrice,
             String highestBidUuid,
             Long highestBidPrice,
@@ -65,6 +66,7 @@ public class Auction extends BaseEntity {
     ) {
         this.id = id;
         this.auctionUuid = auctionUuid;
+        this.pieceProductUuid = pieceProductUuid;
         this.productUuid = productUuid;
         this.startingPrice = startingPrice;
         this.highestBidUuid = highestBidUuid;

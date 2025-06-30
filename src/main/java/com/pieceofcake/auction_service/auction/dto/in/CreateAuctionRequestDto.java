@@ -16,6 +16,7 @@ public class CreateAuctionRequestDto {
     private String productUuid;
     private String pieceProductUuid;
     private Long startingPrice;
+    private String highestBidUuid;
     private Long highestBidPrice;
     private String highestBidMemberUuid;
     private LocalDateTime startDate;
@@ -26,6 +27,7 @@ public class CreateAuctionRequestDto {
             String productUuid,
             String pieceProductUuid,
             Long startingPrice,
+            String highestBidUuid,
             Long highestBidPrice,
             String highestBidMemberUuid,
             LocalDateTime startDate,
@@ -33,6 +35,7 @@ public class CreateAuctionRequestDto {
         this.productUuid = productUuid;
         this.pieceProductUuid = pieceProductUuid;
         this.startingPrice = startingPrice;
+        this.highestBidUuid = highestBidUuid;
         this.highestBidPrice = highestBidPrice;
         this.highestBidMemberUuid = highestBidMemberUuid;
         this.startDate = startDate;
@@ -41,9 +44,10 @@ public class CreateAuctionRequestDto {
 
     public static CreateAuctionRequestDto from(CreateAuctionRequestVo createAuctionRequestVo) {
         return CreateAuctionRequestDto.builder()
-                .pieceProductUuid(createAuctionRequestVo.getPieceProductUuid())
                 .productUuid(createAuctionRequestVo.getProductUuid())
+                .pieceProductUuid(createAuctionRequestVo.getPieceProductUuid())
                 .startingPrice(createAuctionRequestVo.getStartingPrice())
+                .highestBidUuid(createAuctionRequestVo.getHighestBidUuid())
                 .highestBidPrice(createAuctionRequestVo.getHighestBidPrice())
                 .highestBidMemberUuid(createAuctionRequestVo.getHighestBidMemberUuid())
                 .startDate(createAuctionRequestVo.getStartDate())
@@ -55,7 +59,9 @@ public class CreateAuctionRequestDto {
         return Auction.builder()
                 .auctionUuid(UUID.randomUUID().toString())
                 .productUuid(this.productUuid)
+                .pieceProductUuid(this.pieceProductUuid)
                 .startingPrice(this.startingPrice)
+                .highestBidUuid(this.highestBidUuid)
                 .highestBidPrice(this.highestBidPrice)
                 .highestBidMemberUuid(this.highestBidMemberUuid)
                 .startDate(this.startDate)

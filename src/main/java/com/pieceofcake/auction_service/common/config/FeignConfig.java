@@ -10,6 +10,7 @@ import feign.Util;
 import feign.codec.ErrorDecoder;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -17,7 +18,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.io.IOException;
 
-
+@Slf4j
 @Configuration
 public class FeignConfig implements RequestInterceptor {
     @Override
@@ -63,6 +64,11 @@ public class FeignConfig implements RequestInterceptor {
                 );
 
             } catch (Exception ex) {
+                String url = response.request().url();
+                int status = response.status();
+                body = "읽기 실패: " + ex.getMessage();
+                log.error("Feign 요청 실패 - methodKey: {}, URL: {}, status: {}, body: {}", methodKey, url, status, body);
+
                 // 파싱 실패나 IO 에러도 여전히 FeignClientException 으로 감싸기
                 return new FeignClientException(
                         response.status(),

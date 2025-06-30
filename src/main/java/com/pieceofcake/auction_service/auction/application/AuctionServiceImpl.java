@@ -71,7 +71,7 @@ public class AuctionServiceImpl implements AuctionService{
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                kafkaProducer.sendAuctionStartEvent(auction.getProductUuid());
+                kafkaProducer.sendAuctionStartEvent(auction.getPieceProductUuid());
             }
         });
     }
@@ -248,8 +248,8 @@ public class AuctionServiceImpl implements AuctionService{
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                log.info("경매 종료 이벤트 발행: @@@@@@@@{}", auction.getProductUuid());
-                kafkaProducer.sendAuctionCloseEvent(auction.getProductUuid());
+                log.info("경매 종료 이벤트 발행: @@@@@@@@{}", auction.getPieceProductUuid());
+                kafkaProducer.sendAuctionCloseEvent(auction.getPieceProductUuid());
             }
         });
     }

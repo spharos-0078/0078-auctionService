@@ -42,6 +42,7 @@ public class VoteCloseProcessor
     public Vote process(Vote vote) {
         String voteUuid    = vote.getVoteUuid();
         String productUuid = vote.getProductUuid();
+        String pieceProductUuid = vote.getPieceProductUuid();
 
         // 1) 참여자별 투표 내역 조회
         List<VoteDetail> details = voteDetailRepository.findAllByVoteUuid(voteUuid);
@@ -49,9 +50,9 @@ public class VoteCloseProcessor
                 .collect(Collectors.toMap(VoteDetail::getMemberUuid, VoteDetail::getVoteChoice));
 
         // 2) 조각 수 조회
-        MemberPieceResponseWrapper response = pieceFeignClient.getMemberPieceQuantities(productUuid);
+        MemberPieceResponseWrapper response = pieceFeignClient.getMemberPieceQuantities(pieceProductUuid);
         List<MemberPieceResponseDto> pieceInfos = response.getResult();
-
+        log.info("조각 수 조회 결과: {}", pieceInfos);
         // 3) 가중치 집계
         long agreeCount = 0, disagreeCount = 0, noVoteCount = 0, total = 0;
         for (MemberPieceResponseDto info : pieceInfos) {
@@ -74,11 +75,13 @@ public class VoteCloseProcessor
             auctionService.createAuction(
                     CreateAuctionRequestDto.builder()
                             .productUuid(vote.getProductUuid())
+                            .pieceProductUuid(vote.getPieceProductUuid())
                             .startingPrice(vote.getStartingPrice())
+                            .highestBidUuid(vote.getStartingMemberUuid())
                             .highestBidPrice(vote.getStartingPrice())
                             .highestBidMemberUuid(vote.getStartingMemberUuid())
-                            .startTime(vote.getStartDate())
-                            .endTime(vote.getEndDate())
+                            .startDate(vote.getEndDate().plusHours(48))
+                            .endDate(vote.getEndDate())
                             .build()
 
             );
@@ -100,6 +103,8 @@ public class VoteCloseProcessor
                 .id(vote.getId())
                 .voteUuid(voteUuid)
                 .productUuid(productUuid)
+                .pieceProductUuid(pieceProductUuid)
+                .startingMemberUuid(vote.getStartingMemberUuid())
                 .startingPrice(vote.getStartingPrice())
                 .startDate(vote.getStartDate())
                 .endDate(vote.getEndDate())

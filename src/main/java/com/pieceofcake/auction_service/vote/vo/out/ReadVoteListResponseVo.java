@@ -11,13 +11,16 @@ import java.time.LocalDateTime;
 public class ReadVoteListResponseVo {
     private String voteUuid;
     private String productUuid;
+    private String pieceProductUuid;
 
     @Builder
     public ReadVoteListResponseVo(
             String voteUuid,
-            String productUuid
+            String productUuid,
+            String pieceProductUuid
     ) {
         this.voteUuid = voteUuid;
         this.productUuid = productUuid;
+        this.pieceProductUuid = pieceProductUuid;
     }
 }
