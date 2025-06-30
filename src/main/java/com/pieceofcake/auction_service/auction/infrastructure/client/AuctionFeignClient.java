@@ -10,13 +10,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 @FeignClient(
         name = "payment-service",
         contextId = "AuctionFeignClient",
-        url = "${payment-service.url}",
+        url = "${EC2_HOST}:8000/payment-service/api/v1",
         configuration = FeignConfig.class)
 public interface AuctionFeignClient {
 
-    @PostMapping("/api/v1/money")
+    @PostMapping("/money")
     void createMoney(@RequestBody CreateMoneyRequestDto createMoneyRequestDto);
 
-    @PostMapping("/api/v1/money/with-member-uuid")
+    @PostMapping("/money/with-member-uuid")
     void createMoneyWithMemberUuid(@RequestBody CreateMoneyWithMemberUuidRequestDto createMoneyWithMemberUuidRequestDto);
 }

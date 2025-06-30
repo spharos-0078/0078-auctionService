@@ -9,11 +9,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @FeignClient(
         name = "payment-service",
         contextId = "bidFeignClient",
-        url = "${payment-service.url}",
+        url = "${EC2_HOST}:8000/payment-service/api/v1",
         configuration = FeignConfig.class)
 public interface BidFeignClient {
 
-    @GetMapping("/api/v1/money")
+    @GetMapping("/money")
     ReadRemainingMoneyResponseWrapper getRemainingMoney();
 
 }
