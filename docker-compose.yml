@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  auth-service:
+  auction-service:
     container_name: auction-service
     image: ${DOCKER_USERNAME}/auction-service:latest
     ports:
