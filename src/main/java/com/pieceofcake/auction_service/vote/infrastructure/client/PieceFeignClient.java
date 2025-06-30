@@ -16,11 +16,11 @@ import java.util.List;
 @FeignClient(
         name = "piece-service",
         contextId = "piece-product-client", // 충돌 방지용 ID
-        url = "${piece-service.url}",
+        url = "${EC2_HOST}:8000/piece-service/api/v1",
         configuration = FeignConfig.class)
 public interface PieceFeignClient {
 
-    @GetMapping("/api/v1/piece/owned/{pieceProductUuid}/list")
+    @GetMapping("/piece/owned/{pieceProductUuid}/list")
     MemberPieceResponseWrapper getMemberPieceQuantities(
             @PathVariable("pieceProductUuid") String pieceProductUuid
     );
