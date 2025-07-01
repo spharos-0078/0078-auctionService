@@ -66,7 +66,7 @@ public class CreateAuctionRequestDto {
                 .highestBidMemberUuid(this.highestBidMemberUuid)
                 .startDate(this.startDate)
                 .endDate(this.endDate)
-                .auctionStatus(AuctionStatus.ONGOING)
+                .auctionStatus(AuctionStatus.READY)
                 .build();
     }
 }

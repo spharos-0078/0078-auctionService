@@ -108,7 +108,6 @@ public class AuctionServiceImpl implements AuctionService{
                 auction.getHighestBidMemberUuid() : "";
         Long oldHighestBidPrice = auction.getHighestBidPrice() != null ?
                 auction.getHighestBidPrice() : 0L;
-        log.info("updateAuction: {}, 최고 입찰자: {}, 최고 입찰가: {}", auction.getAuctionUuid(), oldHighestMemberUuid, oldHighestBidPrice);
 
         if (auction.getAuctionStatus() != AuctionStatus.ONGOING) {
             throw new BaseException(BaseResponseStatus.AUCTION_NOT_ONGOING);
