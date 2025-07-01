@@ -37,10 +37,5 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
 
-piece-service:
-  url: http://localhost:8000/piece-service
-
-payment-service:
-  url: ${EC2_HOST:http://localhost:8000/payment-service}
-
+EC2_HOST: localhost
 

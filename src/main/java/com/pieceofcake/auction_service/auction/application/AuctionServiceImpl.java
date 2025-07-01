@@ -108,7 +108,6 @@ public class AuctionServiceImpl implements AuctionService{
                 auction.getHighestBidMemberUuid() : "";
         Long oldHighestBidPrice = auction.getHighestBidPrice() != null ?
                 auction.getHighestBidPrice() : 0L;
-        log.info("updateAuction: {}, 최고 입찰자: {}, 최고 입찰가: {}", auction.getAuctionUuid(), oldHighestMemberUuid, oldHighestBidPrice);
 
         if (auction.getAuctionStatus() != AuctionStatus.ONGOING) {
             throw new BaseException(BaseResponseStatus.AUCTION_NOT_ONGOING);
@@ -140,8 +139,9 @@ public class AuctionServiceImpl implements AuctionService{
             }
         }
         // 현재 입찰자의 보증금 추가
-        auctionFeignClient.createMoney(
-                CreateMoneyRequestDto.builder()
+        auctionFeignClient.createMoneyWithMemberUuid(
+                CreateMoneyWithMemberUuidRequestDto.builder()
+                        .memberUuid(updateAuctionDto.getMemberUuid())
                         .amount(updateAuctionDto.getBidPrice())
                         .isPositive(false)
                         .historyType(MoneyHistoryType.FREEZE)

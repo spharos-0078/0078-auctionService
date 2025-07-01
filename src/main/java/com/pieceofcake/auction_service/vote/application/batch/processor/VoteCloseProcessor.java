@@ -2,6 +2,7 @@ package com.pieceofcake.auction_service.vote.application.batch.processor;
 
 import com.pieceofcake.auction_service.auction.application.AuctionService;
 import com.pieceofcake.auction_service.auction.dto.in.CreateAuctionRequestDto;
+import com.pieceofcake.auction_service.auction.entity.enums.AuctionStatus;
 import com.pieceofcake.auction_service.auction.infrastructure.client.AuctionFeignClient;
 import com.pieceofcake.auction_service.auction.infrastructure.client.dto.in.CreateMoneyWithMemberUuidRequestDto;
 import com.pieceofcake.auction_service.auction.infrastructure.client.dto.in.enums.MoneyHistoryType;
@@ -77,11 +78,12 @@ public class VoteCloseProcessor
                             .productUuid(vote.getProductUuid())
                             .pieceProductUuid(vote.getPieceProductUuid())
                             .startingPrice(vote.getStartingPrice())
-                            .highestBidUuid(vote.getStartingMemberUuid())
+                            .highestBidUuid("최초투표자")
                             .highestBidPrice(vote.getStartingPrice())
                             .highestBidMemberUuid(vote.getStartingMemberUuid())
-                            .startDate(vote.getEndDate().plusHours(48))
-                            .endDate(vote.getEndDate())
+                            .startDate(vote.getEndDate())
+                            .endDate(vote.getEndDate().plusHours(48))
+                            .auctionStatus(AuctionStatus.ONGOING)
                             .build()
 
             );
@@ -129,9 +131,12 @@ public class VoteCloseProcessor
 
     @Override
     public void afterWrite(Chunk<? extends Vote> items) {
-        items.forEach(vote ->
-                kafkaProducer.sendVoteCloseEvent(vote.getPieceProductUuid())
-        );
+        items.forEach(vote -> {
+            // 투표가 반대(REJECTED)로 끝난 경우에만 이벤트 발행
+            if (vote.getStatus() == VoteStatus.CLOSED_REJECTED) {
+                kafkaProducer.sendVoteCloseEvent(vote.getPieceProductUuid());
+            }
+        });
     }
 
     /**

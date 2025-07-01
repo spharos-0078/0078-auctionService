@@ -112,7 +112,7 @@ public class BidServiceImpl implements BidService{
         // 현재 flag의 남은 만료 시간 확인 (밀리초 단위)
         Long remainingTTL = redisTemplate.getExpire("auction:useScheduler:" + auctionUuid, TimeUnit.MILLISECONDS);
 
-        if (currentTimestamp - lastUpdateTimestamp < 100) {
+        if (currentTimestamp - lastUpdateTimestamp < 1000) {
             // 트래픽이 많음
             // 1. flag 있고 TTL 많으면 넘어감
             // 2. flag 있고 TTL 적으면 갱신
@@ -128,7 +128,7 @@ public class BidServiceImpl implements BidService{
             } else if (remainingTTL == -1) {
                 // flag가 영구적인 경우 (일반적으로는 발생하지 않음)
                 log.warn("Found permanent flag for auction:useScheduler:{}", auctionUuid);
-            } else if (remainingTTL <= 500) {
+            } else if (remainingTTL <= 1100) {
                 // 2. flag가 있고 TTL이 1초 이하로 적은 경우: 갱신
                 redisTemplate.opsForValue().set("auction:useScheduler:" + auctionUuid, "true", Duration.ofSeconds(2));
             }
