@@ -19,6 +19,7 @@ public class CreateAuctionRequestDto {
     private String highestBidUuid;
     private Long highestBidPrice;
     private String highestBidMemberUuid;
+    private AuctionStatus auctionStatus;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 
@@ -30,6 +31,7 @@ public class CreateAuctionRequestDto {
             String highestBidUuid,
             Long highestBidPrice,
             String highestBidMemberUuid,
+            AuctionStatus auctionStatus,
             LocalDateTime startDate,
             LocalDateTime endDate) {
         this.productUuid = productUuid;
@@ -38,6 +40,7 @@ public class CreateAuctionRequestDto {
         this.highestBidUuid = highestBidUuid;
         this.highestBidPrice = highestBidPrice;
         this.highestBidMemberUuid = highestBidMemberUuid;
+        this.auctionStatus = auctionStatus;
         this.startDate = startDate;
         this.endDate = endDate;
     }
@@ -52,6 +55,7 @@ public class CreateAuctionRequestDto {
                 .highestBidMemberUuid(createAuctionRequestVo.getHighestBidMemberUuid())
                 .startDate(createAuctionRequestVo.getStartDate())
                 .endDate(createAuctionRequestVo.getEndDate())
+                .auctionStatus(createAuctionRequestVo.getAuctionStatus())
                 .build();
     }
 
@@ -66,7 +70,7 @@ public class CreateAuctionRequestDto {
                 .highestBidMemberUuid(this.highestBidMemberUuid)
                 .startDate(this.startDate)
                 .endDate(this.endDate)
-                .auctionStatus(AuctionStatus.READY)
+                .auctionStatus(this.auctionStatus)
                 .build();
     }
 }

@@ -38,7 +38,8 @@ public class BatchAuctionScheduler {
                     : 0L;
             String bidUuid = (String) redisHighestBidMap.get("bidUuid");
             String bidMemberUuid = (String) redisHighestBidMap.get("bidMemberUuid");
-
+            log.info("batch에서 updateAuction 호출 - auctionUuid: {}, bidUuid: {}, bidPrice: {}, bidMemberUuid: {}",
+                    auctionUuid, bidUuid, bidPrice, bidMemberUuid);
             auctionService.updateAuction(UpdateAuctionDto.builder()
                     .auctionUuid(auctionUuid)
                     .bidUuid(bidUuid)

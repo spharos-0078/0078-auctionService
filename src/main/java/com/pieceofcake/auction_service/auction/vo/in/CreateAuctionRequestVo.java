@@ -54,4 +54,10 @@ public class CreateAuctionRequestVo {
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private LocalDateTime endDate;
+    @Schema(
+            description = "경매 상태",
+            example = "ONGOING",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private AuctionStatus auctionStatus;
 }
