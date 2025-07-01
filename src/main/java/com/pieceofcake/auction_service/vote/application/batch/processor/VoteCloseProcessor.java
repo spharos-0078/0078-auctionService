@@ -80,8 +80,8 @@ public class VoteCloseProcessor
                             .highestBidUuid(vote.getStartingMemberUuid())
                             .highestBidPrice(vote.getStartingPrice())
                             .highestBidMemberUuid(vote.getStartingMemberUuid())
-                            .startDate(vote.getEndDate().plusHours(48))
-                            .endDate(vote.getEndDate())
+                            .startDate(vote.getEndDate().plusHours(24))
+                            .endDate(vote.getEndDate().plusHours(48))
                             .build()
 
             );
