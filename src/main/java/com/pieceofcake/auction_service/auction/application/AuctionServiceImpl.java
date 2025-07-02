@@ -49,6 +49,8 @@ public class AuctionServiceImpl implements AuctionService{
     private final AuctionFeignClient auctionFeignClient;
     private final KafkaProducer kafkaProducer;
     private final ApplicationContext applicationContext;
+    private final AuctionSagaService auctionSagaService;
+    private final AuctionSchedulerService auctionSchedulerService;
 
 
     @Override
@@ -84,16 +86,7 @@ public class AuctionServiceImpl implements AuctionService{
         }
 
         taskScheduler.schedule(
-                () -> {
-                    try {
-                        AuctionService proxy = applicationContext.getBean(AuctionService.class);
-                        proxy.closeAuction(auction.getAuctionUuid());
-//                        closeAuction(auction.getAuctionUuid());
-                        log.info("자동 종료된 경매: {}", auction.getAuctionUuid());
-                    } catch (Exception e) {
-                        log.error("경매 자동 종료 실패: {}", auction.getAuctionUuid(), e);
-                    }
-                },
+                () -> auctionSchedulerService.closeAuctionWithNewTransaction(auction.getAuctionUuid()),
                 auction.getEndDate().atZone(java.time.ZoneId.systemDefault()).toInstant()
         );
     }
@@ -116,38 +109,8 @@ public class AuctionServiceImpl implements AuctionService{
         // 엔티티 업데이트
         auctionRepository.save(updateAuctionDto.updateEntity(auction));
 
-//        // 기존 최고가가 있으면, 해당 유저의 보증금 없애기
-        if (auction.getHighestBidUuid() != null) {
-            // 첫 번째 요청을 보내고 완료될 때까지 기다립니다
-            CompletableFuture<Void> refundFuture = CompletableFuture.runAsync(() -> {
-                auctionFeignClient.createMoneyWithMemberUuid(
-                        CreateMoneyWithMemberUuidRequestDto.builder()
-                                .memberUuid(oldHighestMemberUuid)
-                                .amount(oldHighestBidPrice)
-                                .isPositive(true)
-                                .historyType(MoneyHistoryType.FREEZE)
-                                .moneyHistoryDetail(auction.getAuctionUuid())
-                                .build()
-                );
-            });
-            try {
-                // 첫 번째 요청이 완료될 때까지 기다린 후 두 번째 요청을 실행합니다
-                refundFuture.get();
-            } catch (InterruptedException | ExecutionException e) {
-                log.error("이전 입찰자의 보증금 반환 중 오류 발생: {}", e.getMessage());
-                throw new BaseException(BaseResponseStatus.MONEY_SERVICE_ERROR);
-            }
-        }
-        // 현재 입찰자의 보증금 추가
-        auctionFeignClient.createMoneyWithMemberUuid(
-                CreateMoneyWithMemberUuidRequestDto.builder()
-                        .memberUuid(updateAuctionDto.getMemberUuid())
-                        .amount(updateAuctionDto.getBidPrice())
-                        .isPositive(false)
-                        .historyType(MoneyHistoryType.FREEZE)
-                        .moneyHistoryDetail(auction.getAuctionUuid())
-                        .build()
-        );
+        // Saga 패턴을 사용한 보증금 처리
+        auctionSagaService.processAuctionUpdateWithSaga(updateAuctionDto, oldHighestMemberUuid, oldHighestBidPrice);
 
         // SSE 이벤트 발행
         UpdateAuctionPriceSseDto updateAuctionPriceSseDto = UpdateAuctionPriceSseDto.builder()
@@ -205,40 +168,12 @@ public class AuctionServiceImpl implements AuctionService{
                 .auctionStatus((highestBid != null) ? AuctionStatus.CLOSED : AuctionStatus.NO_BID)
                 .build();
 
-        if (auction.getHighestBidUuid().equals(newAuction.getHighestBidUuid())){
-            // 최고입찰자와 bid 기준 입찰자가 다르면
-
-            // auction의 입찰자는 환불
-            auctionFeignClient.createMoneyWithMemberUuid(
-                    CreateMoneyWithMemberUuidRequestDto.builder()
-                            .memberUuid(oldHighestMemberUuid)
-                            .amount(oldHighestBidPrice)
-                            .isPositive(true)
-                            .historyType(MoneyHistoryType.FREEZE)
-                            .moneyHistoryDetail(auction.getAuctionUuid())
-                            .build()
-            );
-
-            // bid의 입찰자에게 구매 진행
-            auctionFeignClient.createMoneyWithMemberUuid(
-                    CreateMoneyWithMemberUuidRequestDto.builder()
-                            .memberUuid(highestBid.getMemberUuid())
-                            .isPositive(false)
-                            .amount(highestBid.getBidPrice())
-                            .historyType(MoneyHistoryType.PRODUCT_BUY)
-                            .moneyHistoryDetail(auction.getAuctionUuid())
-                            .build()
-            );
-        } else {
-            // 최고입찰자가 bid와 같으면
-            auctionFeignClient.createMoneyWithMemberUuid(
-                    CreateMoneyWithMemberUuidRequestDto.builder()
-                            .memberUuid(auction.getHighestBidMemberUuid())
-                            .amount(auction.getHighestBidPrice())
-                            .isPositive(false)
-                            .historyType(MoneyHistoryType.PRODUCT_BUY)
-                            .moneyHistoryDetail(auction.getAuctionUuid())
-                            .build()
+        // Saga 패턴을 사용한 경매 종료 처리
+        if (highestBid != null) {
+            auctionSagaService.processAuctionCloseWithSaga(
+                auctionUuid, 
+                highestBid.getMemberUuid(), 
+                highestBid.getBidPrice()
             );
         }
 

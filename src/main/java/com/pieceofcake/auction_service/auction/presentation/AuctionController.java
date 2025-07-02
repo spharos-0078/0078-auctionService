@@ -17,6 +17,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -35,7 +37,10 @@ public class AuctionController {
     )
     @GetMapping("/highest-price/{auctionUuid}")
     public ReadHighestBidPriceResponseVo getHighestPrice(
-            @PathVariable("auctionUuid") String auctionUuid
+            @PathVariable("auctionUuid") 
+            @Pattern(regexp = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", 
+                     message = "올바른 UUID 형식이 아닙니다") 
+            String auctionUuid
     ) {
         ReadHighestBidPriceRequestVo readHighestBidPriceRequestVo = ReadHighestBidPriceRequestVo.builder()
                 .auctionUuid(auctionUuid)
@@ -55,7 +60,7 @@ public class AuctionController {
     )
     @PostMapping("")
     public void createAuction(
-            @RequestBody CreateAuctionRequestVo createAuctionRequestVo
+            @RequestBody @Valid CreateAuctionRequestVo createAuctionRequestVo
     ) {
         auctionService.createAuction(CreateAuctionRequestDto.from(createAuctionRequestVo));
     }

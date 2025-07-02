@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.validation.FieldError;
 
 @Slf4j
 @RestControllerAdvice
@@ -34,5 +36,23 @@ public class BaseExceptionHandler {
 
         log.error("FeignClientException -> code: {}, message: {}", e.getErrorCode(), e.getErrorMessage(), e);
         return ResponseEntity.status(e.getStatusCode()).body(response);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    protected ResponseEntity<BaseResponseEntity<Void>> handleValidationException(MethodArgumentNotValidException e) {
+        FieldError fieldError = e.getBindingResult().getFieldError();
+        String errorMessage = fieldError != null ? fieldError.getDefaultMessage() : "입력값 검증에 실패했습니다";
+        
+        BaseResponseEntity<Void> response = new BaseResponseEntity<>(
+                org.springframework.http.HttpStatus.BAD_REQUEST,
+                false,
+                errorMessage,
+                4000,
+                null
+        );
+        
+        log.error("ValidationException -> field: {}, message: {}", 
+                fieldError != null ? fieldError.getField() : "unknown", errorMessage, e);
+        return ResponseEntity.badRequest().body(response);
     }
 }
