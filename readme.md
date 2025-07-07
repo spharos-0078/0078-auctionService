@@ -232,7 +232,6 @@ src/main/java/com/pieceofcake/auction_service/
 │   ├── application/           # 애플리케이션 계층
 │   │   ├── AuctionService.java
 │   │   ├── AuctionServiceImpl.java
-│   │   ├── AuctionSagaService.java      # Saga 패턴
 │   │   └── scheduler/
 │   │       └── BatchAuctionScheduler.java
 │   ├── dto/                   # 데이터 전송 객체
@@ -299,65 +298,6 @@ src/main/java/com/pieceofcake/auction_service/
 - **Soft Delete**: 논리적 삭제로 데이터 보존
 - **JPA Auditing**: 생성/수정 시간 자동 관리
 
-## 📊 모니터링
-
-### 로깅
-- **구조화된 로깅**: JSON 형태 로그 출력
-- **로그 레벨**: DEBUG, INFO, WARN, ERROR
-- **MDC**: 요청 추적을 위한 Correlation ID
-
-### 메트릭
-```java
-// Micrometer를 통한 메트릭 수집
-@Timed("auction.bid.processing")
-@Counted("auction.bid.requests")
-public CreateBidResponseDto createBid(CreateBidRequestDto request) {
-    // 메트릭 수집
-}
-```
-
-### 헬스 체크
-```
-GET /actuator/health          # 애플리케이션 상태
-GET /actuator/metrics         # 메트릭 정보
-GET /actuator/info            # 애플리케이션 정보
-```
-
-## 🤝 기여 가이드
-
-### 1. 이슈 리포트
-- 버그 리포트: [Issues](https://github.com/spharos-0078/0078-auctionService/issues)
-- 기능 요청: [Feature Request](https://github.com/spharos-0078/0078-auctionService/issues/new)
-
-### 2. Pull Request
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### 3. 코드 리뷰 체크리스트
-- [ ] 코드 컨벤션 준수
-- [ ] 단위 테스트 작성
-- [ ] 통합 테스트 작성
-- [ ] 문서 업데이트
-- [ ] 성능 영향 검토
-
-## 📄 라이선스
-
-이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
-
 ## 👥 팀
 
-- **개발팀**: Spharos 0078팀
-- **기술 리드**: Jason
-- **아키텍트**: MSA 전문가
-
-## 📞 문의
-
-- **이슈**: [GitHub Issues](https://github.com/spharos-0078/0078-auctionService/issues)
-- **문서**: [Wiki](https://github.com/spharos-0078/0078-auctionService/wiki)
-
----
-
-**⭐ 이 프로젝트가 도움이 되었다면 Star를 눌러주세요!** 
+- **개발팀**: Spharos 6기, 팀 0078
